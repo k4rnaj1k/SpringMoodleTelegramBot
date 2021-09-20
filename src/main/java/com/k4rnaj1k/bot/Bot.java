@@ -40,7 +40,6 @@ public class Bot extends TelegramLongPollingBot {
 
     @Override
     public void onUpdateReceived(Update update) {
-        System.out.println(update.hasCallbackQuery());
         List<PartialBotApiMethod<? extends Serializable>> messages = updateReceiver.handle(update);
         if (messages != null && !messages.isEmpty()) {
             messages.forEach(message ->
