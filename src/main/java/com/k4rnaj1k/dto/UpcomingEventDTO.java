@@ -1,6 +1,7 @@
 package com.k4rnaj1k.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import static com.k4rnaj1k.model.Event.ModuleName;
 
 import java.time.Instant;
 
@@ -12,5 +13,6 @@ public record UpcomingEventDTO(
         Instant timeStart,
         String url,
         @JsonProperty("modulename")
-        String moduleName) {
+        ModuleName moduleName,
+        GroupDTO group) {
 }

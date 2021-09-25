@@ -1,6 +1,8 @@
 package com.k4rnaj1k.model;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name="users")
@@ -16,6 +18,11 @@ public class User {
 
     @Enumerated(EnumType.STRING)
     private State state;
+
+    @ManyToMany
+    @JoinTable(name = "user_groups", joinColumns = @JoinColumn(name="group_id"),
+            inverseJoinColumns = @JoinColumn(name="user_id"))
+    private List<Group> groups = new ArrayList<>();
 
     private boolean receiveNotifications;
 
@@ -58,5 +65,21 @@ public class User {
 
     public void setState(State state) {
         this.state = state;
+    }
+
+    public List<Group> getGroups() {
+        return groups;
+    }
+
+    public void setGroups(List<Group> groups) {
+        this.groups = groups;
+    }
+
+    public boolean isReceiveNotifications() {
+        return receiveNotifications;
+    }
+
+    public void setReceiveNotifications(boolean receiveNotifications) {
+        this.receiveNotifications = receiveNotifications;
     }
 }

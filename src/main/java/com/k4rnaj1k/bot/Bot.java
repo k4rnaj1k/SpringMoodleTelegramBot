@@ -50,7 +50,7 @@ public class Bot extends TelegramLongPollingBot {
         }
     }
 
-    private void executeWithExceptionCheck(SendMessage message) {
+    public void executeWithExceptionCheck(SendMessage message) {
         try {
             execute(message);
         } catch (TelegramApiException e) {

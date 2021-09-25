@@ -5,7 +5,7 @@ import com.k4rnaj1k.handler.Handler;
 import com.k4rnaj1k.model.User;
 import com.k4rnaj1k.repository.UserRepository;
 import com.k4rnaj1k.model.State;
-import com.k4rnaj1k.service.TokenService;
+import com.k4rnaj1k.service.UserService;
 import com.k4rnaj1k.util.TelegramUtil;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
@@ -17,11 +17,11 @@ import java.util.List;
 
 @Component
 public class RegisterUser implements Handler {
-    private final TokenService tokenService;
+    private final UserService userService;
     private final UserRepository userRepository;
 
-    public RegisterUser(TokenService tokenService, UserRepository userRepository) {
-        this.tokenService = tokenService;
+    public RegisterUser(UserService userService, UserRepository userRepository) {
+        this.userService = userService;
         this.userRepository = userRepository;
     }
 
@@ -35,7 +35,7 @@ public class RegisterUser implements Handler {
         try {
             String username = message.split(" ")[0];
             String password = message.split(" ")[1];
-            UserTokenDTO dto = tokenService.getToken(username, password);
+            UserTokenDTO dto = userService.getToken(username, password);
             if(dto.token()==null)
                 throw new IllegalArgumentException();
             user.setToken(dto.token());

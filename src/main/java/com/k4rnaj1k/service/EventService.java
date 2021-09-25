@@ -1,27 +1,36 @@
 package com.k4rnaj1k.service;
 
 import com.k4rnaj1k.dto.UpcomingEventDTO;
-import com.k4rnaj1k.dto.upcoming.UpcomingView;
+import com.k4rnaj1k.model.Event;
+import com.k4rnaj1k.repository.EventRepository;
+import com.k4rnaj1k.repository.GroupRepository;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
 public class EventService {
-    private WebClient webClient;
+    private final WebService webService;
+    private final EventRepository eventRepository;
+    private final GroupRepository groupRepository;
 
-    public EventService(WebClient webClient) {
-        this.webClient = webClient;
+    public EventService(WebService webService, EventRepository eventRepository, GroupRepository groupRepository) {
+        this.webService = webService;
+        this.eventRepository = eventRepository;
+        this.groupRepository = groupRepository;
     }
 
-    public List<UpcomingEventDTO> getEvents(String token){
-        UpcomingView upcomingView = webClient.get().uri(uriBuilder -> uriBuilder
-                .path("/webservice/rest/server.php")
-                .queryParam("wstoken", token)
-                .queryParam("wsfunction", "core_calendar_get_calendar_upcoming_view")
-                .queryParam("moodlewsrestformat", "json")
-                .build()).retrieve().bodyToMono(UpcomingView.class).block();
-        return upcomingView != null ? upcomingView.events() : null;
+
+    public List<Event> getEvents(String token) {
+        List<UpcomingEventDTO> upcomingEvents = webService.getEvents(token);
+        List<Event> events = new ArrayList<>();
+        for (UpcomingEventDTO upcomingEvent :
+                upcomingEvents) {
+            Event event = eventRepository.findById(upcomingEvent.id()).orElse(eventRepository
+                    .save(
+                            new Event(upcomingEvent.id(), upcomingEvent.moduleName(), upcomingEvent.name(), upcomingEvent.course().group)))
+        }
+        return null;
     }
 }

@@ -19,7 +19,7 @@ import java.util.Objects;
 @Component
 public class RetrieveEvents implements Handler {
 
-    private EventService eventService;
+    private final EventService eventService;
 
     public RetrieveEvents(EventService eventService) {
         this.eventService = eventService;
@@ -45,7 +45,6 @@ public class RetrieveEvents implements Handler {
             List<UpcomingEventDTO> afterWeek = upcomingEvents.stream().filter(upcomingEventDTO ->
                             upcomingEventDTO.timeStart().isAfter(today.plus(Duration.ofDays(7))))
                     .toList();
-
             tomorrow.forEach(System.out::println);
             thisWeek.forEach(System.out::println);
             afterWeek.forEach(System.out::println);
