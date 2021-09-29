@@ -4,6 +4,7 @@ import com.k4rnaj1k.receiver.UpdateReceiver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
@@ -13,6 +14,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.function.Consumer;
 
 @Component
 public class Bot extends TelegramLongPollingBot {
@@ -22,7 +24,7 @@ public class Bot extends TelegramLongPollingBot {
     @Value("${bot.username}")
     private String botUsername;
 
-    private UpdateReceiver updateReceiver;
+    private final UpdateReceiver updateReceiver;
 
     public Bot(UpdateReceiver updateReceiver) {
         this.updateReceiver = updateReceiver;
@@ -48,6 +50,11 @@ public class Bot extends TelegramLongPollingBot {
                     executeWithExceptionCheck((SendMessage) message);
             });
         }
+    }
+
+    @Bean
+    public Consumer<SendMessage> sendMessageConsumer(){
+        return (this::executeWithExceptionCheck);
     }
 
     public void executeWithExceptionCheck(SendMessage message) {

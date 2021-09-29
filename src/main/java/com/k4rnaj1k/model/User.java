@@ -82,4 +82,8 @@ public class User {
     public void setReceiveNotifications(boolean receiveNotifications) {
         this.receiveNotifications = receiveNotifications;
     }
+
+    public void addGroup(Group group) {
+        this.groups.add(group);
+    }
 }

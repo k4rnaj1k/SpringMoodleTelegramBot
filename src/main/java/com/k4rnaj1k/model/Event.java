@@ -3,6 +3,8 @@ package com.k4rnaj1k.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import javax.persistence.*;
+import java.time.Instant;
+import java.util.List;
 
 @Entity
 @Table(name="events")
@@ -20,22 +22,35 @@ public class Event {
 
     private String name;
 
-    @ManyToOne
-    private Group group;
+    @ManyToMany
+    @JoinTable(name = "event_groups", joinColumns = @JoinColumn(name="group_id"), inverseJoinColumns = @JoinColumn(name="event_id"))
+    private List<Group> groups;
 
-    public static enum ModuleName{
+    private Instant timeStart;
+
+    public enum ModuleName{
         attendance,
         assign
+    }
+
+
+    public Instant getTimeStart() {
+        return timeStart;
+    }
+
+    public void setTimeStart(Instant timeStart) {
+        this.timeStart = timeStart;
     }
 
     public Event() {
     }
 
-    public Event(Long eventId, ModuleName moduleName, String name, Group group) {
+    public Event(Long eventId, ModuleName moduleName, String name, List<Group> groups) {
         this.eventId = eventId;
         this.moduleName = moduleName;
         this.name = name;
-        this.group = group;
+        this.groups = groups;
+        this.timeStart = Instant.now();
     }
 
     public Long getId() {
@@ -70,11 +85,11 @@ public class Event {
         this.name = name;
     }
 
-    public Group getGroup() {
-        return group;
+    public List<Group> getGroups() {
+        return groups;
     }
 
-    public void setGroup(Group group) {
-        this.group = group;
+    public void setGroup(List<Group> groups) {
+        this.groups = groups;
     }
 }

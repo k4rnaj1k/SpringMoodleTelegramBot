@@ -2,6 +2,7 @@ package com.k4rnaj1k.model;
 
 import javax.persistence.*;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -13,9 +14,18 @@ public class Group {
     private String name;
 
     @ManyToMany(mappedBy = "groups")
-    private List<User> users;
+    private List<User> users = new ArrayList<>();
 
     private Instant updatedAt;
+
+    public Group() {
+    }
+
+    public Group(Long id, String name) {
+        this.id = id;
+        this.name = name;
+        this.updatedAt = Instant.now();
+    }
 
     public Long getId() {
         return id;
@@ -47,5 +57,10 @@ public class Group {
 
     public void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public void addUser(User user) {
+        this.users.add(user);
+        user.addGroup(this);
     }
 }

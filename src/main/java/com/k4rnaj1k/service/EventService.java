@@ -4,10 +4,12 @@ import com.k4rnaj1k.dto.UpcomingEventDTO;
 import com.k4rnaj1k.model.Event;
 import com.k4rnaj1k.repository.EventRepository;
 import com.k4rnaj1k.repository.GroupRepository;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 @Service
 public class EventService {
@@ -21,16 +23,23 @@ public class EventService {
         this.groupRepository = groupRepository;
     }
 
+    @Bean
+    public Function<String, List<Event>> eventsSupplier() {
+        return (this::parseEvents);
+    }
 
-    public List<Event> getEvents(String token) {
+    public List<Event> parseEvents(String token) {
         List<UpcomingEventDTO> upcomingEvents = webService.getEvents(token);
         List<Event> events = new ArrayList<>();
         for (UpcomingEventDTO upcomingEvent :
                 upcomingEvents) {
-            Event event = eventRepository.findById(upcomingEvent.id()).orElse(eventRepository
-                    .save(
-                            new Event(upcomingEvent.id(), upcomingEvent.moduleName(), upcomingEvent.name(), upcomingEvent.course().group)))
+            if (upcomingEvent.groupid() != null) {
+                Event event = eventRepository.findById(upcomingEvent.id()).orElse(eventRepository
+                        .save(
+                                new Event(upcomingEvent.id(), upcomingEvent.moduleName(), upcomingEvent.name(), List.of(groupRepository.findById(upcomingEvent.groupid()).orElseThrow()))));
+                events.add(event);
+            }
         }
-        return null;
+        return events;
     }
 }

@@ -14,5 +14,5 @@ public record UpcomingEventDTO(
         String url,
         @JsonProperty("modulename")
         ModuleName moduleName,
-        GroupDTO group) {
+        Long groupid) {
 }
