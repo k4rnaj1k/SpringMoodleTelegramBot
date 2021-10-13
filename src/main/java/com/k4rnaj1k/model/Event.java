@@ -4,16 +4,21 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import javax.persistence.*;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name="events")
+@Table(name = "events")
 public class Event {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name="event_id")
+    @OneToMany(mappedBy = "event", fetch = FetchType.EAGER)
+    private List<UsersEvent> usersEvents = new ArrayList<>();
+
+
+    @Column(name = "event_id")
     private Long eventId;
 
     @JsonProperty("moduleName")
@@ -23,12 +28,16 @@ public class Event {
     private String name;
 
     @ManyToMany
-    @JoinTable(name = "event_groups", joinColumns = @JoinColumn(name="group_id"), inverseJoinColumns = @JoinColumn(name="event_id"))
+    @JoinTable(name = "event_groups", joinColumns = @JoinColumn(name = "group_id"), inverseJoinColumns = @JoinColumn(name = "event_id"))
     private List<Group> groups;
 
     private Instant timeStart;
 
-    public enum ModuleName{
+    public void addUsersEvent(UsersEvent usersEvent) {
+        this.usersEvents.add(usersEvent);
+    }
+
+    public enum ModuleName {
         attendance,
         assign
     }
@@ -45,12 +54,13 @@ public class Event {
     public Event() {
     }
 
-    public Event(Long eventId, ModuleName moduleName, String name, List<Group> groups) {
+
+    public Event(Long eventId, ModuleName moduleName, String name, List<Group> groups, Instant timeStart) {
         this.eventId = eventId;
         this.moduleName = moduleName;
         this.name = name;
         this.groups = groups;
-        this.timeStart = Instant.now();
+        this.timeStart = timeStart;
     }
 
     public Long getId() {
@@ -90,6 +100,18 @@ public class Event {
     }
 
     public void setGroup(List<Group> groups) {
+        this.groups = groups;
+    }
+
+    public List<UsersEvent> getUsersEvents() {
+        return usersEvents;
+    }
+
+    public void setUsersEvents(List<UsersEvent> usersEvents) {
+        this.usersEvents = usersEvents;
+    }
+
+    public void setGroups(List<Group> groups) {
         this.groups = groups;
     }
 }

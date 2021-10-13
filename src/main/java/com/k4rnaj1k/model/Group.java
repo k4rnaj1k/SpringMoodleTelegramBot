@@ -1,12 +1,15 @@
 package com.k4rnaj1k.model;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.ManyToMany;
+import javax.persistence.Table;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name="groups")
+@Table(name = "groups")
 public class Group {
     @Id
     private Long id;

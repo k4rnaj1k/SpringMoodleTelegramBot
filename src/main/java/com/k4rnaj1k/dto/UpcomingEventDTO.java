@@ -1,9 +1,10 @@
 package com.k4rnaj1k.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import static com.k4rnaj1k.model.Event.ModuleName;
 
 import java.time.Instant;
+
+import static com.k4rnaj1k.model.Event.ModuleName;
 
 public record UpcomingEventDTO(
         Long id,

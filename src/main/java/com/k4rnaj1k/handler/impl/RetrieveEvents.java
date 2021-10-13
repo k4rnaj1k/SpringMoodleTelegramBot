@@ -14,6 +14,7 @@ import java.io.Serializable;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -33,9 +34,10 @@ public class RetrieveEvents implements Handler {
     }
 
     private List<PartialBotApiMethod<? extends Serializable>> retrieveEvents(User user, String message) {
+        List<PartialBotApiMethod<? extends Serializable>> result = new ArrayList<>();
         if (Objects.equals(message, "/upcoming")) {
             Instant today = Instant.now().truncatedTo(ChronoUnit.DAYS);
-            List<Event> upcomingEvents = eventService.parseEvents(user.getToken());
+            List<Event> upcomingEvents = eventService.parseEvents(user);
             List<Event> tomorrow = upcomingEvents.stream().filter(upcomingEvent ->
                             upcomingEvent.getTimeStart().isBefore(today.plus(Duration.ofDays(1))))
                     .toList();
@@ -47,19 +49,19 @@ public class RetrieveEvents implements Handler {
             List<Event> afterWeek = upcomingEvents.stream().filter(upcomingEventDTO ->
                             upcomingEventDTO.getTimeStart().isAfter(today.plus(Duration.ofDays(7))))
                     .toList();
-            SendMessage tomorrowMessage = TelegramUtil.createSendMessage(user.getChatId(), formatEvents(tomorrow));
-            SendMessage thisWeekMessage = TelegramUtil.createSendMessage(user.getChatId(), formatEvents(thisWeek));
-            SendMessage afterWeekMessage = TelegramUtil.createSendMessage(user.getChatId(), formatEvents(afterWeek));
+            SendMessage tomorrowMessage = TelegramUtil.createSendMessage(user.getChatId(), "Tomorrow" + "\n" + formatEvents(tomorrow));
+            SendMessage thisWeekMessage = TelegramUtil.createSendMessage(user.getChatId(), "This week" + "\n" + formatEvents(thisWeek));
+            SendMessage afterWeekMessage = TelegramUtil.createSendMessage(user.getChatId(), "After this week" + "\n" + formatEvents(afterWeek));
             return List.of(tomorrowMessage, thisWeekMessage, afterWeekMessage);
         }
-        return Collections.emptyList();
+        return result;
     }
 
     private String formatEvents(List<Event> events) {
         String res = "";
         for (Event event :
                 events) {
-            res = res.concat(event.getId()+" " + event.getName());
+            res = res.concat(event.getId() + " " + event.getName() + "\n");
         }
         return res;
     }

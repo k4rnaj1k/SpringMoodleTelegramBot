@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name="users")
+@Table(name = "users")
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -13,23 +13,29 @@ public class User {
 
     private String token;
 
-    @Column(name="chat_id")
+    @Column(name = "user_id")
+    private Long userId;
+
+    @Column(name = "chat_id")
     private Long chatId;
 
     @Enumerated(EnumType.STRING)
     private State state;
 
-    @ManyToMany
-    @JoinTable(name = "user_groups", joinColumns = @JoinColumn(name="group_id"),
-            inverseJoinColumns = @JoinColumn(name="user_id"))
+    @OneToMany(mappedBy = "user")
+    private List<UsersEvent> usersEvents = new ArrayList<>();
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "user_groups", joinColumns = @JoinColumn(name = "group_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id"))
     private List<Group> groups = new ArrayList<>();
 
     private boolean receiveNotifications;
 
     public User(Long chatId) {
-        this.chatId=chatId;
-        this.state=State.START;
-        this.receiveNotifications=false;
+        this.chatId = chatId;
+        this.state = State.START;
+        this.receiveNotifications = false;
     }
 
     public User() {
@@ -85,5 +91,25 @@ public class User {
 
     public void addGroup(Group group) {
         this.groups.add(group);
+    }
+
+    public void addUsersEvent(UsersEvent usersEvent) {
+        this.usersEvents.add(usersEvent);
+    }
+
+    public List<UsersEvent> getUsersEvents() {
+        return usersEvents;
+    }
+
+    public void setUsersEvents(List<UsersEvent> usersEvents) {
+        this.usersEvents = usersEvents;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 }

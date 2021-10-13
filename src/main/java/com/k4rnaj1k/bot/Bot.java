@@ -53,7 +53,7 @@ public class Bot extends TelegramLongPollingBot {
     }
 
     @Bean
-    public Consumer<SendMessage> sendMessageConsumer(){
+    public Consumer<SendMessage> sendMessageConsumer() {
         return (this::executeWithExceptionCheck);
     }
 

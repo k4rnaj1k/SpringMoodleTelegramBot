@@ -12,7 +12,7 @@ public class WebClientConfiguration {
     private String moodleUrl;
 
     @Bean
-    public WebClient webClient(){
+    public WebClient webClient() {
         return WebClient.create(moodleUrl);
     }
 
