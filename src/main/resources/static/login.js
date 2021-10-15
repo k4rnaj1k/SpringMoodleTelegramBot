@@ -13,8 +13,6 @@ document.getElementById("box").onsubmit = async (e) => {
         body: JSON.stringify(data)
     });
     if (response.ok) {
-        response.json().then(() => {
-            window.open('/login', '_self');
-        })
+            window.open('/success', '_self');
     }
 }
