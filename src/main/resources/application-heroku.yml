@@ -1,0 +1,14 @@
+spring:
+  datasource:
+    url: ${DATABASE_URL}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+bot:
+  token: ${BOT_TOKEN}
+  username: ${BOT_USR}
+web:
+  currenturl: ${URL}
+moodle:
+  url: ${MOODLE_URL}
