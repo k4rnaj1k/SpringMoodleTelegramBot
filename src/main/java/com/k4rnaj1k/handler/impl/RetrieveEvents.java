@@ -6,20 +6,17 @@ import com.k4rnaj1k.model.State;
 import com.k4rnaj1k.model.User;
 import com.k4rnaj1k.service.EventService;
 import com.k4rnaj1k.util.TelegramUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 
 import java.io.Serializable;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 @Component
+@Slf4j
 public class RetrieveEvents implements Handler {
 
     private final EventService eventService;
@@ -36,32 +33,28 @@ public class RetrieveEvents implements Handler {
     private List<PartialBotApiMethod<? extends Serializable>> retrieveEvents(User user, String message) {
         List<PartialBotApiMethod<? extends Serializable>> result = new ArrayList<>();
         if (Objects.equals(message, "/upcoming")) {
-            Instant today = Instant.now().truncatedTo(ChronoUnit.DAYS);
-            List<Event> upcomingEvents = eventService.parseEvents(user);
-            List<Event> tomorrow = upcomingEvents.stream().filter(upcomingEvent ->
-                            upcomingEvent.getTimeStart().isBefore(today.plus(Duration.ofDays(1))))
-                    .toList();
-            List<Event> thisWeek = upcomingEvents.stream().filter(upcomingEventDTO ->
-                            upcomingEventDTO.getTimeStart().isAfter(today.plus(Duration.ofDays(1))))
-                    .filter(upcomingEventDTO ->
-                            upcomingEventDTO.getTimeStart().isBefore(today.plus(Duration.ofDays(7))))
-                    .toList();
-            List<Event> afterWeek = upcomingEvents.stream().filter(upcomingEventDTO ->
-                            upcomingEventDTO.getTimeStart().isAfter(today.plus(Duration.ofDays(7))))
-                    .toList();
-            SendMessage tomorrowMessage = TelegramUtil.createSendMessage(user.getChatId(), "Tomorrow" + "\n" + formatEvents(tomorrow));
-            SendMessage thisWeekMessage = TelegramUtil.createSendMessage(user.getChatId(), "This week" + "\n" + formatEvents(thisWeek));
-            SendMessage afterWeekMessage = TelegramUtil.createSendMessage(user.getChatId(), "After this week" + "\n" + formatEvents(afterWeek));
+            log.info("User issued upcoming command.");
+            SendMessage tomorrowMessage = TelegramUtil.createSendMessage(user.getChatId(), "Tomorrow" + "\n" + formatEvents(eventService.getTomorrow(user), false));
+            SendMessage thisWeekMessage = TelegramUtil.createSendMessage(user.getChatId(), "This week" + "\n" + formatEvents(eventService.getThisWeek(user), true));
+            SendMessage afterWeekMessage = TelegramUtil.createSendMessage(user.getChatId(), "After this week" + "\n" + formatEvents(eventService.getAfterWeek(user), true));
             return List.of(tomorrowMessage, thisWeekMessage, afterWeekMessage);
         }
         return result;
     }
 
-    private String formatEvents(List<Event> events) {
+    private String formatEvents(List<Event> events, boolean afterTomorrow) {
         String res = "";
+        SimpleDateFormat tomorrowFormat = new SimpleDateFormat("HH:mm");
+        SimpleDateFormat weekFormat = new SimpleDateFormat("dd.MM");
         for (Event event :
                 events) {
-            res = res.concat(event.getId() + " " + event.getName() + "\n");
+            if (afterTomorrow)
+                res = res.concat(event.getId() + " " + event.getName() +
+                        tomorrowFormat.format(Date.from(event.getTimeStart())) + "\n");
+            else {
+                res = res.concat(event.getId() + " " + event.getName() +
+                        weekFormat.format(Date.from(event.getTimeStart())) + "\n");
+            }
         }
         return res;
     }

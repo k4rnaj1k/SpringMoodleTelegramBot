@@ -25,34 +25,12 @@ public class RegisterUser implements Handler {
         return register(user, message);
     }
 
-    /* private List<PartialBotApiMethod<? extends Serializable>> register(User user, String message) {
-         SendMessage sendMessage;
-         try {
-             String username = message.split(" ")[0];
-             String password = message.split(" ")[1];
-             UserTokenDTO dto = webService.getToken(username, password);
-             if (dto.token() == null)
-                 throw new IllegalArgumentException();
-             user.setToken(dto.token());
-             user.setState(State.LOGGED_IN);
-             userRepository.save(user);
-             List<GroupDTO> userGroups = webService.getGroups(user.getToken());
-             userGroups.forEach(groupDTO -> {
-                 Group group = groupRepository.findById(groupDTO.id())
-                         .orElse(groupRepository.save(new Group(groupDTO.id(), groupDTO.name())));
-                 group.addUser(user);
-                 userRepository.save(user);
-                 groupRepository.save(group);
-             });
-             sendMessage = TelegramUtil.createSendMessage(user.getChatId(), "Successfully retrieved user's token and loaded user's groups.");
-         } catch (Exception e) {
-             sendMessage = TelegramUtil.createSendMessage(user.getChatId(), "Couldn't retrieve user's token. Make sure you've written the _username_ and _password_ right.");
-         }
-         return List.of(sendMessage);
-     }*/
     private List<PartialBotApiMethod<? extends Serializable>> register(User user, String message) {
         if (message.equals("/login")) {
             SendMessage result = TelegramUtil.createSendMessageWithUrl(user.getChatId(), "[register](" + currentUrl + "/login?chat_id=" + user.getChatId().toString() + ")");
+            return List.of(result);
+        } else if (message.equals("/start")) {
+            SendMessage result = TelegramUtil.createSendMessageWithUrl(user.getChatId(), "Hello! This bot automatically checks user's events and notifies when there are any upcoming. To get the login form - send /login command.");
             return List.of(result);
         } else
             return Collections.emptyList();
