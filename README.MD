@@ -1,4 +1,4 @@
-#Telegram bot that works with moodle rest api.
+# Telegram bot that works with moodle rest api.
 
 Just set up a few env vars and u're ready to go.
 <table>
