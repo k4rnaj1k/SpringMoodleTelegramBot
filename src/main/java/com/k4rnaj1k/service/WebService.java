@@ -3,12 +3,14 @@ package com.k4rnaj1k.service;
 import com.k4rnaj1k.dto.*;
 import com.k4rnaj1k.dto.upcoming.UpcomingView;
 import com.k4rnaj1k.exception.BotExceptionUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.List;
 
 @Service
+@Slf4j
 public class WebService {
     private final WebClient webClient;
 
@@ -17,6 +19,7 @@ public class WebService {
     }
 
     public UserTokenDTO getToken(String username, String password) {
+        log.info("getToken - Loading user's token.");
         return webClient.get().uri(uriBuilder -> uriBuilder.path("/login/token.php")
                 .queryParam("service", "moodle_mobile_app")
                 .queryParam("username", username)
@@ -26,6 +29,7 @@ public class WebService {
     }
 
     public List<GroupDTO> getGroups(String token) {
+        log.info("getGroups - loading user's groups.");
         UserGroupsDTO list = webClient.get().uri(uriBuilder -> uriBuilder.path("/webservice/rest/server.php")
                 .queryParam("wstoken", token)
                 .queryParam("wsfunction", "core_group_get_course_user_groups")
@@ -36,6 +40,7 @@ public class WebService {
     }
 
     public List<UpcomingEventDTO> loadEvents(String token) {
+        log.info("loadEvents - loading user's events.");
         UpcomingView upcomingView = webClient.get().uri(uriBuilder -> uriBuilder
                 .path("/webservice/rest/server.php")
                 .queryParam("wstoken", token)
@@ -46,6 +51,7 @@ public class WebService {
     }
 
     public List<CourseDTO> getCourses(String token, Long userId) {
+        log.info("getCourses - loading user's courses.");
         CourseDTO[] usersCourses = webClient.get().uri(uriBuilder -> uriBuilder
                 .path("webservice/rest/server.php")
                 .queryParam("wstoken", token)
@@ -59,6 +65,7 @@ public class WebService {
     }
 
     public Long getUserId(String token) {
+        log.info("getUserId - loading user's id.");
         UserDataDTO userDataDTO = webClient.get().uri(uriBuilder -> uriBuilder
                 .path("webservice/rest/server.php")
                 .queryParam("wstoken", token)
