@@ -48,7 +48,7 @@ public class RetrieveEvents implements Handler {
         SimpleDateFormat weekFormat = new SimpleDateFormat("dd.MM");
         for (Event event :
                 events) {
-            if (afterTomorrow)
+            if (!afterTomorrow)
                 res = res.concat(event.getId() + " " + event.getName() +
                         tomorrowFormat.format(Date.from(event.getTimeStart())) + "\n");
             else {
