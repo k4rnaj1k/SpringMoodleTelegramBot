@@ -1,5 +1,7 @@
 package com.k4rnaj1k.model;
 
+import org.springframework.transaction.annotation.Transactional;
+
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,12 +27,13 @@ public class User {
     @OneToMany(mappedBy = "user")
     private List<UsersEvent> usersEvents = new ArrayList<>();
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(name = "user_groups", joinColumns = @JoinColumn(name = "group_id"),
-            inverseJoinColumns = @JoinColumn(name = "user_id"))
+    @ManyToMany(mappedBy = "users")
     private List<Group> groups = new ArrayList<>();
 
     private boolean receiveNotifications;
+
+    @ManyToMany(mappedBy = "users")
+    private List<Course> courses;
 
     public User(Long chatId) {
         this.chatId = chatId;
@@ -89,6 +92,7 @@ public class User {
         this.receiveNotifications = receiveNotifications;
     }
 
+    @Transactional
     public void addGroup(Group group) {
         this.groups.add(group);
     }
@@ -111,5 +115,18 @@ public class User {
 
     public void setUserId(Long userId) {
         this.userId = userId;
+    }
+
+    public List<Course> getCourses() {
+        return courses;
+    }
+
+    public void setCourses(List<Course> courses) {
+        this.courses = courses;
+    }
+
+    @Transactional
+    public void addCourse(Course course) {
+        this.courses.add(course);
     }
 }

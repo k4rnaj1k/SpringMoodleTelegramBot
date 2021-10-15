@@ -27,14 +27,37 @@ public class Event {
 
     private String name;
 
+    @ManyToOne
+    @JoinTable(name = "event_courses", joinColumns = @JoinColumn(name = "event_id"), inverseJoinColumns = @JoinColumn(name = "course_id"))
+    private Course course;
+
     @ManyToMany
     @JoinTable(name = "event_groups", joinColumns = @JoinColumn(name = "group_id"), inverseJoinColumns = @JoinColumn(name = "event_id"))
-    private List<Group> groups;
+    private List<Group> groups = new ArrayList<>();
 
     private Instant timeStart;
 
+    public Event(Long eventId, ModuleName moduleName, String name, Instant timeStart) {
+        this.eventId = eventId;
+        this.moduleName = moduleName;
+        this.name = name;
+        this.timeStart = timeStart;
+    }
+
+    public void setCourse(Course course) {
+        this.course = course;
+    }
+
+    public Course getCourse() {
+        return course;
+    }
+
     public void addUsersEvent(UsersEvent usersEvent) {
         this.usersEvents.add(usersEvent);
+    }
+
+    public void addGroup(Group eventsGroup) {
+        this.groups.add(eventsGroup);
     }
 
     public enum ModuleName {
@@ -42,6 +65,12 @@ public class Event {
         assign
     }
 
+    public List<User> getUsers(){
+        if(groups.isEmpty())
+            return course.getUsers();
+        else
+            return groups.get(0).getUsers();
+    }
 
     public Instant getTimeStart() {
         return timeStart;
@@ -54,13 +83,21 @@ public class Event {
     public Event() {
     }
 
-
     public Event(Long eventId, ModuleName moduleName, String name, List<Group> groups, Instant timeStart) {
         this.eventId = eventId;
         this.moduleName = moduleName;
         this.name = name;
         this.groups = groups;
         this.timeStart = timeStart;
+    }
+
+    public Event(Long eventId, ModuleName moduleName, String name, List<Group> groups, Instant timeStart, Course course) {
+        this.eventId = eventId;
+        this.moduleName = moduleName;
+        this.name = name;
+        this.groups = groups;
+        this.timeStart = timeStart;
+        this.course = course;
     }
 
     public Long getId() {

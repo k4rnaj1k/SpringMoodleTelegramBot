@@ -1,9 +1,6 @@
 package com.k4rnaj1k.model;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.ManyToMany;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +13,9 @@ public class Group {
 
     private String name;
 
-    @ManyToMany(mappedBy = "groups")
+    @ManyToMany
+    @JoinTable(name = "user_groups", joinColumns = @JoinColumn(name = "group_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id"))
     private List<User> users = new ArrayList<>();
 
     private Instant updatedAt;
@@ -27,7 +26,6 @@ public class Group {
     public Group(Long id, String name) {
         this.id = id;
         this.name = name;
-        this.updatedAt = Instant.now();
     }
 
     public Long getId() {

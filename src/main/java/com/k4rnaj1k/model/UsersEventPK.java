@@ -15,8 +15,8 @@ public class UsersEventPK implements Serializable {
     public UsersEventPK() {
     }
 
-    public UsersEventPK(Long id, Long eventId) {
-        this.user = id;
+    public UsersEventPK(Long userId, Long eventId) {
+        this.user = userId;
         this.event = eventId;
     }
 
