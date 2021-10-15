@@ -29,7 +29,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 
     List<Event> findAllByTimeStartAfterAndTimeStartBefore(Instant after, Instant before);
 
-    default List<Event> findAllAfter(Instant after, User user){
+    default List<Event> findAllAfter(Instant after, User user) {
         return findAllByTimeStartAfterAndUsersEvents_User(after, user);
     }
 

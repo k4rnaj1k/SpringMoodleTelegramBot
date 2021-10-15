@@ -65,8 +65,8 @@ public class Event {
         assign
     }
 
-    public List<User> getUsers(){
-        if(groups.isEmpty())
+    public List<User> getUsers() {
+        if (groups.isEmpty())
             return course.getUsers();
         else
             return groups.get(0).getUsers();
