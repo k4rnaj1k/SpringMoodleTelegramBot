@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public record CourseDTO(Long id,
                         @JsonProperty("fullname")
-                        String fullName) {
+                        String fullName,
+                        @JsonProperty("shortname")
+                        String shortName) {
 
 }
