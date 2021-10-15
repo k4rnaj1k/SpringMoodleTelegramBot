@@ -10,6 +10,7 @@ import com.k4rnaj1k.repository.EventRepository;
 import com.k4rnaj1k.repository.GroupRepository;
 import com.k4rnaj1k.repository.UserRepository;
 import com.k4rnaj1k.util.TelegramUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
@@ -32,9 +33,9 @@ import java.util.function.Function;
 @Service
 @EnableScheduling
 @Transactional
+@Slf4j
 public class UserService {
     private final UserRepository userRepository;
-    private final Logger log = LoggerFactory.getLogger(UserService.class);
 
     private final Function<User, List<Event>> eventsFunction;
     private final Consumer<SendMessage> sendMessageConsumer;
