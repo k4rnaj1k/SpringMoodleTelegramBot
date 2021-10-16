@@ -30,7 +30,7 @@ public class RegisterUser implements Handler {
             SendMessage result = TelegramUtil.createSendMessageWithUrl(user.getChatId(), "[register](" + currentUrl + "/login?chat_id=" + user.getChatId().toString() + ")");
             return List.of(result);
         } else if (message.equals("/start")) {
-            SendMessage result = TelegramUtil.createSendMessageWithUrl(user.getChatId(), "Hello! This bot automatically checks user's events and notifies when there are any upcoming. To get the login form - send /login command.");
+            SendMessage result = TelegramUtil.createSendMessageWithUrl(user.getChatId(), "Hello\\! This bot automatically checks user's events and notifies when there are any upcoming\\. To get the login form \\- send /login command\\.");
             return List.of(result);
         } else
             return Collections.emptyList();

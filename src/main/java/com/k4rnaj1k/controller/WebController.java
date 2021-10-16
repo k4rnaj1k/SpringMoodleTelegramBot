@@ -30,18 +30,6 @@ public class WebController {
         return "login";
     }
 
-    @PostMapping("submit")
-    public ResponseEntity<Object> submit(@RequestBody LoginRequest loginRequest, @RequestParam("chat_id") String chatId) {
-        if (userService.loadUser(loginRequest, chatId)) {
-            userService.loadUsersFields(chatId);
-            log.info("Successfully loaded user's fields {}.", chatId);
-            return new ResponseEntity<>(HttpStatus.OK);
-        } else {
-            log.error("Encountered an error during process of fields retrieval chatId = {}.", chatId);
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
-        }
-    }
-
     @GetMapping("success")
     public String success() {
         return "success";

@@ -4,7 +4,10 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 
 public class TelegramUtil {
     public static SendMessage createSendMessage(Long chatId, String message) {
-        message = message.replaceAll("\\.", "\\\\.").replaceAll("\\(", "\\\\(").replaceAll("\\)", "\\\\)").replaceAll("-", "\\\\-").replace("is due", "");
+        message = message.replaceAll("\\.", "\\\\.")
+                .replaceAll("\\(", "\\\\(").replaceAll("\\)", "\\\\)")
+                .replaceAll("-", "\\\\-").replaceAll("is due", "")
+                .replaceAll("!", "\\\\!");
         SendMessage sendMessage = new SendMessage(String.valueOf(chatId), message);
         sendMessage.enableMarkdownV2(true);
         return sendMessage;

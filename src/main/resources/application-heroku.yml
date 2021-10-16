@@ -12,3 +12,6 @@ web:
   currenturl: ${URL}
 moodle:
   url: ${MOODLE_URL}
+server:
+  error:
+    include-message: always

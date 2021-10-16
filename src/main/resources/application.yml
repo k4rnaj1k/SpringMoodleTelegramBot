@@ -5,7 +5,7 @@ spring:
     url: ${DB_URL}
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: create
     open-in-view: false
 bot:
   token: ${BOT_TOKEN}
@@ -14,3 +14,6 @@ web:
   currenturl: ${URL}
 moodle:
   url: ${MOODLE_URL}
+server:
+  error:
+    include-message: always

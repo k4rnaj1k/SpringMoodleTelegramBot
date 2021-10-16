@@ -4,8 +4,10 @@ import com.k4rnaj1k.dto.*;
 import com.k4rnaj1k.dto.upcoming.UpcomingView;
 import com.k4rnaj1k.exception.BotExceptionUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -20,12 +22,18 @@ public class WebService {
 
     public UserTokenDTO getToken(String username, String password) {
         log.info("getToken - Loading user's token.");
-        return webClient.get().uri(uriBuilder -> uriBuilder.path("/login/token.php")
+        UserTokenDTO userTokenDTO = webClient.get().uri(uriBuilder -> uriBuilder.path("/login/token.php")
                 .queryParam("service", "moodle_mobile_app")
                 .queryParam("username", username)
                 .queryParam("password", password)
                 .build()
         ).retrieve().bodyToMono(UserTokenDTO.class).block();
+        if(userTokenDTO ==null || userTokenDTO.token() == null){
+            log.error("getToken - couldn't retrieve users token.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Couldn't log in. Wrong credentials.");
+        }else{
+            return userTokenDTO;
+        }
     }
 
     public List<GroupDTO> getGroups(String token) {
