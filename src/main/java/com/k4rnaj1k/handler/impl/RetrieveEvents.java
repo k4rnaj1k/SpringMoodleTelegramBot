@@ -7,6 +7,7 @@ import com.k4rnaj1k.model.User;
 import com.k4rnaj1k.service.EventService;
 import com.k4rnaj1k.util.TelegramUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;

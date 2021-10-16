@@ -6,6 +6,7 @@ import javax.persistence.*;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Table(name = "courses")
 @Entity
@@ -82,5 +83,18 @@ public class Course {
     public void addUser(User user) {
         this.users.add(user);
         user.addCourse(this);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Course course = (Course) o;
+        return Objects.equals(courseId, course.courseId) && Objects.equals(fullName, course.fullName) && Objects.equals(shortName, course.shortName);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(courseId, fullName, shortName);
     }
 }

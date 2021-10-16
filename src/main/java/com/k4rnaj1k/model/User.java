@@ -30,10 +30,10 @@ public class User {
     @ManyToMany(mappedBy = "users")
     private List<Group> groups = new ArrayList<>();
 
-    private boolean receiveNotifications;
-
     @ManyToMany(mappedBy = "users")
     private List<Course> courses;
+
+    private boolean receiveNotifications;
 
     public User(Long chatId) {
         this.chatId = chatId;

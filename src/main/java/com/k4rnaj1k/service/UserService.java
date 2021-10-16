@@ -60,25 +60,23 @@ public class UserService {
         List<Event> events = eventRepository.findAllAfterAndBefore(Instant.now(), Instant.now().plus(Duration.ofDays(1)));
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm");
         Map<Long, String> usersMessages = new LinkedHashMap<>();
-        events.forEach(event -> {
-            event.getUsersEvents().forEach(usersEvent -> {
-                if (!usersEvent.isNotified()) {
-                    Long chatId = usersEvent.getUser().getChatId();
-                    String message = simpleDateFormat.format(Date.from(event.getTimeStart())) + " " + event.getName() + " " + event.getModuleName();
-                    if (usersMessages.containsKey(chatId)) {
-                        usersMessages.put(chatId, usersMessages.get(chatId) + "\n" + message);
-                    } else {
-                        usersMessages.put(chatId, "Осталось меньше суток до:\n" + message);
-                    }
-                    usersEvent.setNotified(true);
+        events.forEach(event -> event.getUsersEvents().forEach(usersEvent -> {
+            if (!usersEvent.isNotified()) {
+                Long chatId = usersEvent.getUser().getChatId();
+                String message = simpleDateFormat.format(Date.from(event.getTimeStart())) + " " + event.getName() + " " + event.getModuleName();
+                if (usersMessages.containsKey(chatId)) {
+                    usersMessages.put(chatId, usersMessages.get(chatId) + "\n" + message);
+                } else {
+                    usersMessages.put(chatId, "Осталось меньше суток до:\n" + message);
                 }
-            });
-        });
+                usersEvent.setNotified(true);
+            }
+        }));
         sendMessagesToAll(usersMessages);
     }
 
 
-    @Scheduled(cron = "* 0 8,12,16,20 * * *")
+    @Scheduled(cron = "0 * 8,12,16,20 * * *")
     @Transactional
     public void parseAllUsersTasks() {
         log.info("parseAllUsersTasks - checking if there are any groups or courses that need their events updated.");
@@ -143,6 +141,7 @@ public class UserService {
     }
 
     @Async
+    @Transactional
     public void loadUsersFields(String chatId) {
         User user = userRepository.findByChatId(Long.parseLong(chatId)).orElseThrow();
 

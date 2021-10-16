@@ -3,6 +3,7 @@ package com.k4rnaj1k.service;
 import com.k4rnaj1k.dto.UpcomingEventDTO;
 import com.k4rnaj1k.model.*;
 import com.k4rnaj1k.repository.*;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +16,7 @@ import java.util.function.Function;
 
 @Service
 @Transactional
+@Slf4j
 public class EventService {
     private final WebService webService;
     private final EventRepository eventRepository;
@@ -34,7 +36,6 @@ public class EventService {
 
     @Bean
     public Function<User, List<Event>> eventsSupplier() {
-//        return (this::getEvents);
         return (this::parseEvents);
     }
 
@@ -48,9 +49,11 @@ public class EventService {
         List<UpcomingEventDTO> upcomingEvents = webService.loadEvents(user.getToken());
         List<Event> events = new ArrayList<>();
 
+
         for (UpcomingEventDTO upcomingEvent :
                 upcomingEvents) {
-            Event event = eventRepository.findByEventId(upcomingEvent.id()).orElse(
+            log.info(upcomingEvent.id() + " - " + eventRepository.findByEventId(upcomingEvent.id()));
+            Event event = eventRepository.findByEventId(upcomingEvent.id()).orElseGet(()->
                     eventRepository.save(
                             new Event(upcomingEvent.id(),
                                     upcomingEvent.moduleName(),
@@ -58,40 +61,36 @@ public class EventService {
                                     upcomingEvent.timeStart())
                     )
             );
+
             if (upcomingEvent.groupid() != null && groupRepository.existsById(upcomingEvent.groupid())) {
                 Group eventsGroup = groupRepository.findById(upcomingEvent.groupid()).orElseThrow(RuntimeException::new);
-                event.addGroup(eventsGroup);
-                eventsGroup.getUsers().forEach(groupUser -> {
-                    if (!usersEventRepository.existsByEventAndUser(event, groupUser)) {
-                        UsersEvent usersEvent = new UsersEvent(groupUser, event);
-                        event.addUsersEvent(usersEvent);
-                        usersEventRepository.save(usersEvent);
-                    }
-                });
+                if (!eventsGroup.equals(event.getGroup())) {
+                    event.setGroup(eventsGroup);
+                }
                 eventsGroup.setUpdatedAt(Instant.now());
-                eventRepository.save(event);
-                events.add(event);
             }
-
 
             if (upcomingEvent.course() != null && courseRepository.existsById(upcomingEvent.course().id())) {
                 Course eventsCourse = courseRepository.getById(upcomingEvent.course().id());
-                List<User> users = eventsCourse.getUsers();
-                for (User courseUser :
-                        users) {
-                    if (!usersEventRepository.existsByEventAndUser(event, courseUser)) {
-                        UsersEvent usersEvent = new UsersEvent(courseUser, event);
-                        event.addUsersEvent(usersEvent);
-                        usersEventRepository.save(usersEvent);
-                    }
+                if (!eventsCourse.equals(event.getCourse())) {
+                    event.setCourse(eventsCourse);
                 }
                 eventsCourse.setUpdatedAt(Instant.now());
+                event.setCourse(eventsCourse);
                 courseRepository.save(eventsCourse);
-                eventRepository.save(event);
-
-
-                events.add(event);
             }
+
+            List<User> users = event.getUsers();
+            for (User eventUser :
+                    users) {
+                if (!usersEventRepository.existsByEventAndUser(event, eventUser)) {
+                    UsersEvent usersEvent = new UsersEvent(eventUser, event);
+                    event.addUsersEvent(usersEvent);
+                    usersEventRepository.save(usersEvent);
+                }
+            }
+            events.add(event);
+            eventRepository.save(event);
         }
         return events;
     }
