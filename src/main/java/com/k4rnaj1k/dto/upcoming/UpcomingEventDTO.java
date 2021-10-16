@@ -1,4 +1,4 @@
-package com.k4rnaj1k.dto;
+package com.k4rnaj1k.dto.upcoming;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

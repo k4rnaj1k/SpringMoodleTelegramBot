@@ -1,13 +1,15 @@
 package com.k4rnaj1k.handler.impl;
 
 import com.k4rnaj1k.handler.Handler;
+import com.k4rnaj1k.model.Course;
 import com.k4rnaj1k.model.Event;
 import com.k4rnaj1k.model.State;
 import com.k4rnaj1k.model.User;
 import com.k4rnaj1k.service.EventService;
+import com.k4rnaj1k.service.UserService;
 import com.k4rnaj1k.util.TelegramUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -21,9 +23,11 @@ import java.util.*;
 public class RetrieveEvents implements Handler {
 
     private final EventService eventService;
+    private final UserService userService;
 
-    public RetrieveEvents(EventService eventService) {
+    public RetrieveEvents(EventService eventService, @Lazy UserService userService) {
         this.eventService = eventService;
+        this.userService = userService;
     }
 
     @Override
@@ -35,12 +39,45 @@ public class RetrieveEvents implements Handler {
         List<PartialBotApiMethod<? extends Serializable>> result = new ArrayList<>();
         if (Objects.equals(message, "/upcoming")) {
             log.info("User issued upcoming command.");
-            SendMessage tomorrowMessage = TelegramUtil.createSendMessage(user.getChatId(), "Tomorrow" + "\n" + formatEvents(eventService.getTomorrow(user), false));
-            SendMessage thisWeekMessage = TelegramUtil.createSendMessage(user.getChatId(), "This week" + "\n" + formatEvents(eventService.getThisWeek(user), true));
-            SendMessage afterWeekMessage = TelegramUtil.createSendMessage(user.getChatId(), "After this week" + "\n" + formatEvents(eventService.getAfterWeek(user), true));
-            return List.of(tomorrowMessage, thisWeekMessage, afterWeekMessage);
+            return getUpcoming(user);
+        } else if (Objects.equals(message, "/courses")) {
+            log.info("User issued courses command.");
+            SendMessage coursesList = TelegramUtil.createSendMessage(user.getChatId(), getCourseList(user));
+            return List.of(coursesList);
         }
         return result;
+    }
+
+    private List<PartialBotApiMethod<? extends Serializable>> getUpcoming(User user) {
+        List<PartialBotApiMethod<? extends Serializable>> result = new ArrayList<>();
+        List<Event> tomorrowEvents = eventService.getTomorrow(user);
+        if (tomorrowEvents.size() != 0) {
+            SendMessage tomorrowMessage = TelegramUtil.createSendMessage(user.getChatId(), "Tomorrow" + "\n" +
+                    formatEvents(tomorrowEvents, false));
+            result.add(tomorrowMessage);
+        }
+        List<Event> thisWeekEvents = eventService.getThisWeek(user);
+        if (thisWeekEvents.size() != 0) {
+            SendMessage thisWeekMessage = TelegramUtil.createSendMessage(user.getChatId(), "This week" + "\n" + formatEvents(thisWeekEvents, true));
+            result.add(thisWeekMessage);
+        }
+
+        List<Event> afterWeekEvents = eventService.getAfterWeek(user);
+        if (afterWeekEvents.size() != 0) {
+            SendMessage afterWeekMessage = TelegramUtil.createSendMessage(user.getChatId(), "After this week" + "\n" + formatEvents(afterWeekEvents, true));
+            result.add(afterWeekMessage);
+        }
+        return result;
+    }
+
+    private String getCourseList(User user) {
+        List<Course> userCourses = userService.getCourses(user);
+        String res = "Your courses: ";
+        for (Course course :
+                userCourses) {
+            res = res.concat(course.getFullName() + " - " + course.getShortName() + "\n");
+        }
+        return res;
     }
 
     private String formatEvents(List<Event> events, boolean afterTomorrow) {
@@ -49,13 +86,13 @@ public class RetrieveEvents implements Handler {
         SimpleDateFormat weekFormat = new SimpleDateFormat("dd.MM");
         for (Event event :
                 events) {
+            res = res.concat((event.getCourse() != null ? event.getCourse().getShortName() : event.getGroup().getName()) + " " + event.getName() + " ");
             if (!afterTomorrow)
-                res = res.concat(event.getId() + " " + event.getName() +
-                        tomorrowFormat.format(Date.from(event.getTimeStart())) + "\n");
+                res = res.concat(tomorrowFormat.format(Date.from(event.getTimeStart())));
             else {
-                res = res.concat(event.getId() + " " + event.getName() +
-                        weekFormat.format(Date.from(event.getTimeStart())) + "\n");
+                res = res.concat(weekFormat.format(Date.from(event.getTimeStart())));
             }
+            res = res.concat("\n");
         }
         return res;
     }

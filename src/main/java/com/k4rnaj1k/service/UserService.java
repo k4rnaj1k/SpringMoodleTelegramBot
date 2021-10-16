@@ -1,9 +1,9 @@
 package com.k4rnaj1k.service;
 
-import com.k4rnaj1k.dto.CourseDTO;
-import com.k4rnaj1k.dto.GroupDTO;
 import com.k4rnaj1k.dto.LoginRequest;
 import com.k4rnaj1k.dto.UserTokenDTO;
+import com.k4rnaj1k.dto.upcoming.CourseDTO;
+import com.k4rnaj1k.dto.upcoming.GroupDTO;
 import com.k4rnaj1k.model.*;
 import com.k4rnaj1k.repository.CourseRepository;
 import com.k4rnaj1k.repository.EventRepository;
@@ -11,8 +11,6 @@ import com.k4rnaj1k.repository.GroupRepository;
 import com.k4rnaj1k.repository.UserRepository;
 import com.k4rnaj1k.util.TelegramUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -35,12 +33,14 @@ import java.util.function.Function;
 @Transactional
 @Slf4j
 public class UserService {
-    private final UserRepository userRepository;
 
     private final Function<User, List<Event>> eventsFunction;
     private final Consumer<SendMessage> sendMessageConsumer;
+
     private final WebService webService;
+
     private final GroupRepository groupRepository;
+    private final UserRepository userRepository;
     private final EventRepository eventRepository;
     private final CourseRepository courseRepository;
 
@@ -67,7 +67,7 @@ public class UserService {
                 if (usersMessages.containsKey(chatId)) {
                     usersMessages.put(chatId, usersMessages.get(chatId) + "\n" + message);
                 } else {
-                    usersMessages.put(chatId, "Осталось меньше суток до:\n" + message);
+                    usersMessages.put(chatId, "Less than 24 hours left till:\n" + message);
                 }
                 usersEvent.setNotified(true);
             }
@@ -75,8 +75,7 @@ public class UserService {
         sendMessagesToAll(usersMessages);
     }
 
-
-    @Scheduled(cron = "0 * 8,12,16,20 * * *")
+    @Scheduled(cron = "* 0 8,12,16,20 * * *")
     @Transactional
     public void parseAllUsersTasks() {
         log.info("parseAllUsersTasks - checking if there are any groups or courses that need their events updated.");
@@ -153,6 +152,10 @@ public class UserService {
         if (shouldParse(user))
             eventsFunction.apply(user);
 
+        sendMessageConsumer.accept(TelegramUtil.createSendMessage(chatId, """
+                Successfully found u in my database <3
+                You're automatically subscribed to the bot's notifications regarding upcoming events.
+                Send /upcoming to get all the currently saved events."""));
         log.info("loadUsersFields - Successfully loaded user's fields");
     }
 
@@ -181,5 +184,9 @@ public class UserService {
 
     public User getUserById(String chatId) {
         return userRepository.findByChatId(Long.parseLong(chatId)).orElseThrow(RuntimeException::new);
+    }
+
+    public List<Course> getCourses(User user) {
+        return courseRepository.getCoursesByUsersContaining(user);
     }
 }

@@ -22,4 +22,12 @@ public class TelegramUtil {
         sendMessage.enableMarkdownV2(true);
         return sendMessage;
     }
+
+    public static String acronym(String phrase) {
+        StringBuilder result = new StringBuilder();
+        for (String token : phrase.split("\\s+")) {
+            result.append(token.toUpperCase().charAt(0));
+        }
+        return result.toString();
+    }
 }
