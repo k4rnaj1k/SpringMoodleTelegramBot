@@ -1,12 +1,13 @@
 package com.k4rnaj1k.model;
 
-import com.k4rnaj1k.dto.CourseDTO;
+import com.k4rnaj1k.dto.upcoming.CourseDTO;
+import com.k4rnaj1k.util.TelegramUtil;
 
 import javax.persistence.*;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.Objects;
+import java.util.Set;
 
 @Table(name = "courses")
 @Entity
@@ -25,7 +26,7 @@ public class Course {
 
     @ManyToMany
     @JoinTable(name = "users_courses", joinColumns = @JoinColumn(name = "course_id"), inverseJoinColumns = @JoinColumn(name = "user_id"))
-    private List<User> users = new ArrayList<>();
+    private Set<User> users = new LinkedHashSet<>();
 
     public Course() {
     }
@@ -37,7 +38,7 @@ public class Course {
     }
 
     public static Course fromDTO(CourseDTO courseDTO) {
-        return new Course(courseDTO.id(), courseDTO.fullName(), courseDTO.shortName());
+        return new Course(courseDTO.id(), courseDTO.fullName(), courseDTO.shortName().length() > 5 ? TelegramUtil.acronym(courseDTO.shortName()) : courseDTO.shortName());
     }
 
     public Long getCourseId() {
@@ -72,11 +73,11 @@ public class Course {
         this.updatedAt = timeUpdated;
     }
 
-    public List<User> getUsers() {
+    public Set<User> getUsers() {
         return users;
     }
 
-    public void setUsers(List<User> users) {
+    public void setUsers(Set<User> users) {
         this.users = users;
     }
 

@@ -7,5 +7,5 @@ import com.k4rnaj1k.model.UsersEventPK;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface UsersEventRepository extends JpaRepository<UsersEvent, UsersEventPK> {
-    public boolean existsByEventAndUser(Event event, User user);
+    boolean existsByEventAndUser(Event event, User user);
 }

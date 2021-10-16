@@ -2,9 +2,9 @@ package com.k4rnaj1k.model;
 
 import javax.persistence.*;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.Objects;
+import java.util.Set;
 
 @Entity
 @Table(name = "groups")
@@ -17,7 +17,7 @@ public class Group {
     @ManyToMany
     @JoinTable(name = "user_groups", joinColumns = @JoinColumn(name = "group_id"),
             inverseJoinColumns = @JoinColumn(name = "user_id"))
-    private List<User> users = new ArrayList<>();
+    private Set<User> users = new LinkedHashSet<>();
 
     private Instant updatedAt;
 
@@ -45,11 +45,11 @@ public class Group {
         this.name = name;
     }
 
-    public List<User> getUsers() {
+    public Set<User> getUsers() {
         return users;
     }
 
-    public void setUsers(List<User> users) {
+    public void setUsers(Set<User> users) {
         this.users = users;
     }
 

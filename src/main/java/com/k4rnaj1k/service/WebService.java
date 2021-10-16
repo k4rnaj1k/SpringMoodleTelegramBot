@@ -1,6 +1,11 @@
 package com.k4rnaj1k.service;
 
-import com.k4rnaj1k.dto.*;
+import com.k4rnaj1k.dto.UserDataDTO;
+import com.k4rnaj1k.dto.UserGroupsDTO;
+import com.k4rnaj1k.dto.UserTokenDTO;
+import com.k4rnaj1k.dto.upcoming.CourseDTO;
+import com.k4rnaj1k.dto.upcoming.GroupDTO;
+import com.k4rnaj1k.dto.upcoming.UpcomingEventDTO;
 import com.k4rnaj1k.dto.upcoming.UpcomingView;
 import com.k4rnaj1k.exception.BotExceptionUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -28,10 +33,10 @@ public class WebService {
                 .queryParam("password", password)
                 .build()
         ).retrieve().bodyToMono(UserTokenDTO.class).block();
-        if(userTokenDTO ==null || userTokenDTO.token() == null){
+        if (userTokenDTO == null || userTokenDTO.token() == null) {
             log.error("getToken - couldn't retrieve users token.");
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Couldn't log in. Wrong credentials.");
-        }else{
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Couldn't log in. Wrong credentials.");
+        } else {
             return userTokenDTO;
         }
     }

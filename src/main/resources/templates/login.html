@@ -7,11 +7,10 @@
 <body>
 <form class="box" id="box" action="submit" method="post">
     <h1>Telegram bot login</h1>
-    <input type="text" id="username" placeholder="логин">
-    <input type="password" id="password" placeholder="пароль">
+    <input type="text" id="username" placeholder="login">
+    <input type="password" id="password" placeholder="password">
     <input type="hidden" id="chat_id" th:value="${chatId}">
-    <input type="submit" value="Войти">
-    <p hidden>Неправильный пароль или логин. Проверьте правильность введенных данных и попробуйте еще раз.</p>
+    <input type="submit" value="Submit">
 </form>
 <script src="login.js"></script>
 </body>

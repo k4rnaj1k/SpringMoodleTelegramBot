@@ -1,6 +1,6 @@
 package com.k4rnaj1k.service;
 
-import com.k4rnaj1k.dto.UpcomingEventDTO;
+import com.k4rnaj1k.dto.upcoming.UpcomingEventDTO;
 import com.k4rnaj1k.model.*;
 import com.k4rnaj1k.repository.*;
 import lombok.extern.slf4j.Slf4j;
@@ -12,6 +12,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 
 @Service
@@ -44,26 +45,25 @@ public class EventService {
     }
 
     public List<Event> parseEvents(User user) {
+        log.info("Parsing events for user " + user.getChatId());
         user = userRepository.findById(user.getId()).orElseThrow();
 
         List<UpcomingEventDTO> upcomingEvents = webService.loadEvents(user.getToken());
         List<Event> events = new ArrayList<>();
 
-
         for (UpcomingEventDTO upcomingEvent :
                 upcomingEvents) {
-            log.info(upcomingEvent.id() + " - " + eventRepository.findByEventId(upcomingEvent.id()));
-            Event event = eventRepository.findByEventId(upcomingEvent.id()).orElseGet(()->
+            Event event = eventRepository.findByEventId(upcomingEvent.id()).orElseGet(() ->
                     eventRepository.save(
                             new Event(upcomingEvent.id(),
                                     upcomingEvent.moduleName(),
-                                    upcomingEvent.name(),
+                                    upcomingEvent.name().replaceAll("\s\\((.)*\\)", ""),
                                     upcomingEvent.timeStart())
                     )
             );
 
             if (upcomingEvent.groupid() != null && groupRepository.existsById(upcomingEvent.groupid())) {
-                Group eventsGroup = groupRepository.findById(upcomingEvent.groupid()).orElseThrow(RuntimeException::new);
+                Group eventsGroup = groupRepository.getById(upcomingEvent.groupid());
                 if (!eventsGroup.equals(event.getGroup())) {
                     event.setGroup(eventsGroup);
                 }
@@ -77,10 +77,9 @@ public class EventService {
                 }
                 eventsCourse.setUpdatedAt(Instant.now());
                 event.setCourse(eventsCourse);
-                courseRepository.save(eventsCourse);
             }
 
-            List<User> users = event.getUsers();
+            Set<User> users = event.getUsers();
             for (User eventUser :
                     users) {
                 if (!usersEventRepository.existsByEventAndUser(event, eventUser)) {
@@ -92,6 +91,7 @@ public class EventService {
             events.add(event);
             eventRepository.save(event);
         }
+        log.info("Successfully parsed user's events.");
         return events;
     }
 
