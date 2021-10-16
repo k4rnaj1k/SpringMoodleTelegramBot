@@ -72,7 +72,7 @@ public class RetrieveEvents implements Handler {
 
     private String getCourseList(User user) {
         List<Course> userCourses = userService.getCourses(user);
-        String res = "Your courses: ";
+        String res = "Your courses: \n";
         for (Course course :
                 userCourses) {
             res = res.concat(course.getFullName() + " - " + course.getShortName() + "\n");
