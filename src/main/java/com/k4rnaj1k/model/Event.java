@@ -80,7 +80,7 @@ public class Event {
     @Transactional
     public Set<User> getUsers() {
         if (group != null)
-            return Stream.concat(course.getUsers().stream(), group.getUsers().stream()).collect(Collectors.toSet());
+            return group.getUsers();
         else
             return course.getUsers();
     }

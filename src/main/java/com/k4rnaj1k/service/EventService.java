@@ -64,7 +64,7 @@ public class EventService {
             );
 
             if (upcomingEvent.groupid() != null && groupRepository.existsById(upcomingEvent.groupid())) {
-                Group eventsGroup = groupRepository.getById(upcomingEvent.groupid());
+                var eventsGroup = groupRepository.getById(upcomingEvent.groupid());
                 if (!eventsGroup.equals(event.getGroup())) {
                     event.setGroup(eventsGroup);
                 }

@@ -62,7 +62,7 @@ public class UserService {
     }
 
 //    @EventListener(ApplicationReadyEvent.class)
-    @Scheduled(fixedDelay = 60_000L)
+    @Scheduled(fixedDelay = 36_00_000L)
     public void checkSelfAssignment() {
         log.info("Checking assignments.");
         int notificationCount = 0;
@@ -157,7 +157,7 @@ public class UserService {
         List<Group> groups = user.getGroups();
         for (Group group :
                 groups) {
-            if (group.getUpdatedAt() == null || group.getUpdatedAt().isBefore(Instant.now().minus(Duration.ofHours(4)))) {
+            if (group.getUpdatedAt() == null || group.getUpdatedAt().isBefore(Instant.now().minus(Duration.ofHours(3)))) {
                 log.info("Parsing user's events {}", user.getChatId());
                 return true;
             }
@@ -166,7 +166,7 @@ public class UserService {
         for (Course course :
                 courses
         ) {
-            if (course.getUpdatedAt() == null || course.getUpdatedAt().isBefore(Instant.now().minus(Duration.ofHours(4)))) {
+            if (course.getUpdatedAt() == null || course.getUpdatedAt().isBefore(Instant.now().minus(Duration.ofHours(3)))) {
                 log.info("Parsing user's events {}", user.getChatId());
                 return true;
             }
