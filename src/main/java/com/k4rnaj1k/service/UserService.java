@@ -27,7 +27,6 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -46,6 +45,9 @@ public class UserService {
     private final UserRepository userRepository;
     private final EventRepository eventRepository;
     private final CourseRepository courseRepository;
+    private static final Timer timer = new Timer("Notifier timer.");
+    private static final Set<TimerTask> notifications = new LinkedHashSet<>();
+
 
     public UserService(UserRepository userRepository, Function<User, List<Event>> eventsFunction, Consumer<SendMessage> sendMessageConsumer, WebService webService, GroupRepository groupRepository, EventRepository eventRepository, CourseRepository courseRepository) {
         this.userRepository = userRepository;
@@ -62,7 +64,6 @@ public class UserService {
         log.info("Checking assignments.");
         int notificationCount = 0;
         List<Event> events = eventRepository.findAllByModuleNameAndTimeStartAfterAndTimeStartBefore(Event.ModuleName.attendance, Instant.now(), Instant.now().plus(1, ChronoUnit.DAYS));
-        Timer timer = new Timer("Notifier timer.");
         for (Event event :
                 events) {
             Set<User> users = event.getUsers();
@@ -70,6 +71,8 @@ public class UserService {
                     users) {
                 String message = "Here's the link to mark your attendance\n" + event.getUrl();
                 TimerTask timerTask = new NotifyAboutAttendanceTask(message, user.getChatId());
+                if (notifications.contains(timerTask))
+                    continue;
                 timer.schedule(timerTask, Date.from(event.getTimeStart()));
                 notificationCount++;
             }
@@ -90,6 +93,19 @@ public class UserService {
         @Override
         public void run() {
             sendMessageConsumer.accept(TelegramUtil.createSendMessageWithUrl(chatId, message));
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            NotifyAboutAttendanceTask that = (NotifyAboutAttendanceTask) o;
+            return Objects.equals(message, that.message) && Objects.equals(chatId, that.chatId);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(message, chatId);
         }
     }
 
