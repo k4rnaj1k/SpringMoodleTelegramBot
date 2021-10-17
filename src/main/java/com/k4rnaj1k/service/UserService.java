@@ -13,11 +13,13 @@ import com.k4rnaj1k.util.TelegramUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
+import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 
 import java.time.Duration;
@@ -59,7 +61,8 @@ public class UserService {
         this.courseRepository = courseRepository;
     }
 
-    @EventListener(ApplicationReadyEvent.class)
+//    @EventListener(ApplicationReadyEvent.class)
+    @Scheduled(cron = "* 0 * * * *")
     public void checkSelfAssignment() {
         log.info("Checking assignments.");
         int notificationCount = 0;
@@ -74,6 +77,7 @@ public class UserService {
                 if (notifications.contains(timerTask))
                     continue;
                 timer.schedule(timerTask, Date.from(event.getTimeStart()));
+                notifications.add(timerTask);
                 notificationCount++;
             }
         }
@@ -109,7 +113,7 @@ public class UserService {
         }
     }
 
-    @Scheduled(cron = "* 0 8-20 * * *")
+    @Scheduled(cron = "0 */10 8-20 * * *")
     public void checkUsersTasks() {
         log.info("checkUsersTasks - checking user's tasks.");
         List<Event> events = eventRepository.findAllAfterAndBefore(Instant.now(), Instant.now().plus(Duration.ofDays(1)));
@@ -129,7 +133,7 @@ public class UserService {
         sendMessagesToAll(usersMessages);
     }
 
-    @Scheduled(cron = "* 0 8,12,16,20 * * *")
+    @Scheduled(cron = "0 0 8,12,16,20 * * *")
     @Transactional
     public void parseAllUsersTasks() {
         log.info("parseAllUsersTasks - checking if there are any groups or courses that need their events updated.");
@@ -178,9 +182,10 @@ public class UserService {
 
         log.info("loadUser - starting to load user's data.");
 
-        if (userRepository.findByChatId(Long.parseLong(chatId)).isPresent()) {
+        try {
+            if (userRepository.findByChatId(Long.parseLong(chatId)).isPresent()) {
             User registered = userRepository.getByChatId(Long.parseLong(chatId));
-            UserTokenDTO dto = webService.getToken(loginRequest.username(), loginRequest.password());
+                UserTokenDTO dto = webService.getToken(loginRequest.username(), loginRequest.password());
             registered.setToken(dto.token());
             registered.setUserId(webService.getUserId(registered.getToken()));
             userRepository.save(registered);
@@ -190,6 +195,10 @@ public class UserService {
         } else {
             log.info("loadUser - Couldn't find user {}", chatId);
             return false;
+        }
+        }catch (ResponseStatusException e){
+            userRepository.getByChatId(Long.parseLong(chatId)).setState(State.START);
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "User credentials are wrong or moodle is down.");
         }
     }
 

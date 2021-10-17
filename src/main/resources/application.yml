@@ -5,7 +5,7 @@ spring:
     url: ${DB_URL}
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     open-in-view: false
 bot:
   token: ${BOT_TOKEN}
