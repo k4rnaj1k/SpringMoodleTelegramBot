@@ -1,7 +1,10 @@
 package com.k4rnaj1k.service;
 
 import com.k4rnaj1k.dto.upcoming.UpcomingEventDTO;
-import com.k4rnaj1k.model.*;
+import com.k4rnaj1k.model.Course;
+import com.k4rnaj1k.model.Event;
+import com.k4rnaj1k.model.User;
+import com.k4rnaj1k.model.UsersEvent;
 import com.k4rnaj1k.repository.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;

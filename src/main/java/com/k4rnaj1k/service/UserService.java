@@ -11,8 +11,6 @@ import com.k4rnaj1k.repository.GroupRepository;
 import com.k4rnaj1k.repository.UserRepository;
 import com.k4rnaj1k.util.TelegramUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.event.EventListener;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -61,12 +59,11 @@ public class UserService {
         this.courseRepository = courseRepository;
     }
 
-//    @EventListener(ApplicationReadyEvent.class)
     @Scheduled(fixedDelay = 36_00_000L)
-    public void checkSelfAssignment() {
-        log.info("Checking assignments.");
+    public void checkAttendaceEvents() {
+        log.info("Checking attendance events.");
         int notificationCount = 0;
-        List<Event> events = eventRepository.findAllByModuleNameAndTimeStartAfterAndTimeStartBefore(Event.ModuleName.attendance, Instant.now(), Instant.now().plus(1, ChronoUnit.DAYS));
+        List<Event> events = eventRepository.findAllByModuleNameAndAfterAndBefore(Event.ModuleName.attendance, Instant.now(), Instant.now().plus(1, ChronoUnit.DAYS));
         for (Event event :
                 events) {
             Set<User> users = event.getUsers();
@@ -115,7 +112,7 @@ public class UserService {
 
     @Scheduled(cron = "0 */10 8-20 * * *")
     public void checkUsersTasks() {
-        log.info("checkUsersTasks - checking user's tasks.");
+        log.info("checking User's tasks.");
         List<Event> events = eventRepository.findAllAfterAndBefore(Instant.now(), Instant.now().plus(Duration.ofDays(1)));
         Map<Long, String> usersMessages = new LinkedHashMap<>();
         events.forEach(event -> event.getUsersEvents().forEach(usersEvent -> {
@@ -136,7 +133,7 @@ public class UserService {
     @Scheduled(cron = "0 0 8,12,16,20 * * *")
     @Transactional
     public void parseAllUsersTasks() {
-        log.info("parseAllUsersTasks - checking if there are any groups or courses that need their events updated.");
+        log.info("Checking if there are any groups or courses that need their events updated.");
         List<User> users = getUsers();
         users.forEach(user -> {
             if (shouldParse(user))
@@ -180,23 +177,23 @@ public class UserService {
 
     public boolean loadUser(LoginRequest loginRequest, String chatId) {
 
-        log.info("loadUser - starting to load user's data.");
+        log.info("Starting to load user's data.");
 
         try {
             if (userRepository.findByChatId(Long.parseLong(chatId)).isPresent()) {
-            User registered = userRepository.getByChatId(Long.parseLong(chatId));
+                User registered = userRepository.getByChatId(Long.parseLong(chatId));
                 UserTokenDTO dto = webService.getToken(loginRequest.username(), loginRequest.password());
-            registered.setToken(dto.token());
-            registered.setUserId(webService.getUserId(registered.getToken()));
-            userRepository.save(registered);
-            registered.setState(State.LOGGED_IN);
-            userRepository.save(registered);
-            return true;
-        } else {
-            log.info("loadUser - Couldn't find user {}", chatId);
-            return false;
-        }
-        }catch (ResponseStatusException e){
+                registered.setToken(dto.token());
+                registered.setUserId(webService.getUserId(registered.getToken()));
+                userRepository.save(registered);
+                registered.setState(State.LOGGED_IN);
+                userRepository.save(registered);
+                return true;
+            } else {
+                log.info("loadUser - Couldn't find user {}", chatId);
+                return false;
+            }
+        } catch (ResponseStatusException e) {
             userRepository.getByChatId(Long.parseLong(chatId)).setState(State.START);
             throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "User credentials are wrong or moodle is down.");
         }
@@ -228,7 +225,7 @@ public class UserService {
         for (CourseDTO courseDTO :
                 userCourses) {
             Course course = courseRepository.findById(courseDTO.id())
-                    .orElseGet(()->courseRepository.save(Course.fromDTO(courseDTO)));
+                    .orElseGet(() -> courseRepository.save(Course.fromDTO(courseDTO)));
             course.addUser(user);
             courseRepository.save(course);
         }
@@ -239,7 +236,7 @@ public class UserService {
         List<GroupDTO> userGroups = webService.getGroups(user.getToken());
         for (GroupDTO groupDTO : userGroups) {
             Group group = groupRepository.findById(groupDTO.id())
-                    .orElseGet(()->groupRepository.save(new Group(groupDTO.id(), groupDTO.name())));
+                    .orElseGet(() -> groupRepository.save(new Group(groupDTO.id(), groupDTO.name())));
             group.addUser(user);
             groupRepository.save(group);
         }

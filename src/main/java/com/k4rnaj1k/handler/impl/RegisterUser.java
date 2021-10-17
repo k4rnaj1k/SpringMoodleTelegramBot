@@ -26,14 +26,12 @@ public class RegisterUser implements Handler {
     }
 
     private List<PartialBotApiMethod<? extends Serializable>> register(User user, String message) {
-        if (message.equals("/login")) {
-            SendMessage result = TelegramUtil.createSendMessageWithUrl(user.getChatId(), "[register](" + currentUrl + "/login?chat_id=" + user.getChatId().toString() + ")");
-            return List.of(result);
-        } else if (message.equals("/start")) {
-            SendMessage result = TelegramUtil.createSendMessageWithUrl(user.getChatId(), "Hello\\! This bot automatically checks user's events and notifies when there are any upcoming\\. To get the login form \\- send /login command\\.");
-            return List.of(result);
-        } else
-            return Collections.emptyList();
+        SendMessage result = switch (message) {
+            case "/login" -> TelegramUtil.createSendMessageWithUrl(user.getChatId(), "[register](" + currentUrl + "/login?chat_id=" + user.getChatId().toString() + ")");
+            case "/start" -> TelegramUtil.createSendMessageWithUrl(user.getChatId(), "Hello\\! This bot automatically checks user's events and notifies when there are any upcoming\\. To get the login form \\- send /login command\\.");
+            default -> TelegramUtil.createSendMessage(user.getChatId(), "Message not recognized. Send /login to get the link to log into the bot.");
+        };
+        return List.of(result);
     }
 
     @Override
