@@ -15,3 +15,6 @@ moodle:
 server:
   error:
     include-message: always
+logging:
+  pattern:
+    console: '%d{HH:mm}| %highlight(%-5level) ---| %logger{36} - %m{20}%n'
