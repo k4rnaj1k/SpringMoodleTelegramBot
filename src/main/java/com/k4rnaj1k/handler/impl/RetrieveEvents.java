@@ -50,6 +50,9 @@ public class RetrieveEvents implements Handler {
             log.info("User issued courses command.");
             SendMessage coursesList = TelegramUtil.createSendMessage(user.getChatId(), getCourseList(user));
             return List.of(coursesList);
+        }else if(Objects.equals(message, "/update") && user.getChatId()==561955044){
+            userService.parseAllUsersTasks();
+            return List.of(TelegramUtil.createSendMessage(user.getChatId(), "Successfully parsed all the users events."));
         }
         return result;
     }

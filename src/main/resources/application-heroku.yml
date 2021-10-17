@@ -5,6 +5,8 @@ spring:
     hibernate:
       ddl-auto: update
     open-in-view: false
+  flyway:
+    enabled: false
 bot:
   token: ${BOT_TOKEN}
   username: ${BOT_USR}

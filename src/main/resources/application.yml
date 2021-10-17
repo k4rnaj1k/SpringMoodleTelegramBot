@@ -5,8 +5,10 @@ spring:
     url: ${DB_URL}
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: validate
     open-in-view: false
+  flyway:
+    enabled: false
 bot:
   token: ${BOT_TOKEN}
   username: ${BOT_USR}
