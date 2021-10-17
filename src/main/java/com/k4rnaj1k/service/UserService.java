@@ -62,7 +62,7 @@ public class UserService {
     }
 
 //    @EventListener(ApplicationReadyEvent.class)
-    @Scheduled(cron = "* 0 * * * *")
+    @Scheduled(fixedDelay = 60_000L)
     public void checkSelfAssignment() {
         log.info("Checking assignments.");
         int notificationCount = 0;
