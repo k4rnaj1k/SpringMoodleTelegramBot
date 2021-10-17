@@ -58,7 +58,8 @@ public class EventService {
                             new Event(upcomingEvent.id(),
                                     upcomingEvent.moduleName(),
                                     upcomingEvent.name().replaceAll("\s\\((.)*\\)", ""),
-                                    upcomingEvent.timeStart())
+                                    upcomingEvent.timeStart(),
+                                    upcomingEvent.url())
                     )
             );
 

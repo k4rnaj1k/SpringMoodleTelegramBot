@@ -34,4 +34,6 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     }
 
     List<Event> findAllByTimeStartAfterAndUsersEvents_User(Instant after, User user);
+
+    List<Event> findAllByModuleNameAndTimeStartAfterAndTimeStartBefore(Event.ModuleName attendance, Instant after, Instant before);
 }

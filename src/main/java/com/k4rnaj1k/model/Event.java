@@ -42,11 +42,14 @@ public class Event {
 
     private Instant timeStart;
 
-    public Event(Long eventId, ModuleName moduleName, String name, Instant timeStart) {
+    private String url;
+
+    public Event(Long eventId, ModuleName moduleName, String name, Instant timeStart, String url) {
         this.eventId = eventId;
         this.moduleName = moduleName;
         this.name = name;
         this.timeStart = timeStart;
+        this.url = url;
     }
 
     public void setCourse(Course course) {
@@ -150,6 +153,13 @@ public class Event {
         this.usersEvents = usersEvents;
     }
 
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
 
     @Override
     public boolean equals(Object o) {

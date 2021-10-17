@@ -15,8 +15,14 @@ import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 
 import java.io.Serializable;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 
 @Component
 @Slf4j
@@ -82,15 +88,15 @@ public class RetrieveEvents implements Handler {
 
     private String formatEvents(List<Event> events, boolean afterTomorrow) {
         String res = "";
-        SimpleDateFormat tomorrowFormat = new SimpleDateFormat("HH:mm");
-        SimpleDateFormat weekFormat = new SimpleDateFormat("dd.MM");
+        DateTimeFormatter tomorrowFormat = new DateTimeFormatterBuilder().appendPattern("HH:mm").toFormatter();
+        DateTimeFormatter weekFormat = new DateTimeFormatterBuilder().appendPattern("dd.MM").toFormatter();
         for (Event event :
                 events) {
             res = res.concat((event.getCourse() != null ? event.getCourse().getShortName() : event.getGroup().getName()) + " " + event.getName() + " ");
             if (!afterTomorrow)
-                res = res.concat(tomorrowFormat.format(Date.from(event.getTimeStart())));
+                res = res.concat(tomorrowFormat.format(LocalDateTime.ofInstant(event.getTimeStart(), ZoneId.of("Europe/Kiev"))));
             else {
-                res = res.concat(weekFormat.format(Date.from(event.getTimeStart())));
+                res = res.concat(weekFormat.format(LocalDateTime.ofInstant(event.getTimeStart(), ZoneId.of("Europe/Kiev"))));
             }
             res = res.concat("\n");
         }

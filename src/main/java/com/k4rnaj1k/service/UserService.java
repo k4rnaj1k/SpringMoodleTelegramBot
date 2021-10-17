@@ -11,6 +11,8 @@ import com.k4rnaj1k.repository.GroupRepository;
 import com.k4rnaj1k.repository.UserRepository;
 import com.k4rnaj1k.util.TelegramUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -18,13 +20,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 
-import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -54,16 +57,51 @@ public class UserService {
         this.courseRepository = courseRepository;
     }
 
+    @EventListener(ApplicationReadyEvent.class)
+    public void checkSelfAssignment() {
+        log.info("Checking assignments.");
+        int notificationCount = 0;
+        List<Event> events = eventRepository.findAllByModuleNameAndTimeStartAfterAndTimeStartBefore(Event.ModuleName.attendance, Instant.now(), Instant.now().plus(1, ChronoUnit.DAYS));
+        Timer timer = new Timer("Notifier timer.");
+        for (Event event :
+                events) {
+            Set<User> users = event.getUsers();
+            for (User user :
+                    users) {
+                String message = "Here's the link to mark your attendance\n" + event.getUrl();
+                TimerTask timerTask = new NotifyAboutAttendanceTask(message, user.getChatId());
+                timer.schedule(timerTask, Date.from(event.getTimeStart()));
+                notificationCount++;
+            }
+        }
+        log.info("Successfully scheduled " + notificationCount + " notifications.");
+    }
+
+    private class NotifyAboutAttendanceTask extends TimerTask {
+
+        private final String message;
+        private final Long chatId;
+
+        public NotifyAboutAttendanceTask(String message, Long chatId) {
+            this.message = message;
+            this.chatId = chatId;
+        }
+
+        @Override
+        public void run() {
+            sendMessageConsumer.accept(TelegramUtil.createSendMessageWithUrl(chatId, message));
+        }
+    }
+
     @Scheduled(cron = "* 0 8-20 * * *")
     public void checkUsersTasks() {
         log.info("checkUsersTasks - checking user's tasks.");
         List<Event> events = eventRepository.findAllAfterAndBefore(Instant.now(), Instant.now().plus(Duration.ofDays(1)));
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm");
         Map<Long, String> usersMessages = new LinkedHashMap<>();
         events.forEach(event -> event.getUsersEvents().forEach(usersEvent -> {
             if (!usersEvent.isNotified()) {
                 Long chatId = usersEvent.getUser().getChatId();
-                String message = simpleDateFormat.format(Date.from(event.getTimeStart())) + " " + event.getName() + " " + event.getModuleName();
+                String message = DateTimeFormatter.ofPattern("hh:mm").format(LocalDateTime.ofInstant(event.getTimeStart(), ZoneId.of("Europe/Kiev"))) + " " + event.getName() + " " + event.getCourse().getShortName();
                 if (usersMessages.containsKey(chatId)) {
                     usersMessages.put(chatId, usersMessages.get(chatId) + "\n" + message);
                 } else {
