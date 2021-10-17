@@ -228,7 +228,7 @@ public class UserService {
         for (CourseDTO courseDTO :
                 userCourses) {
             Course course = courseRepository.findById(courseDTO.id())
-                    .orElse(courseRepository.save(Course.fromDTO(courseDTO)));
+                    .orElseGet(()->courseRepository.save(Course.fromDTO(courseDTO)));
             course.addUser(user);
             courseRepository.save(course);
         }
@@ -239,7 +239,7 @@ public class UserService {
         List<GroupDTO> userGroups = webService.getGroups(user.getToken());
         for (GroupDTO groupDTO : userGroups) {
             Group group = groupRepository.findById(groupDTO.id())
-                    .orElse(groupRepository.save(new Group(groupDTO.id(), groupDTO.name())));
+                    .orElseGet(()->groupRepository.save(new Group(groupDTO.id(), groupDTO.name())));
             group.addUser(user);
             groupRepository.save(group);
         }

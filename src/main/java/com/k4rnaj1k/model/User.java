@@ -125,7 +125,6 @@ public class User {
         this.courses = courses;
     }
 
-    @Transactional
     public void addCourse(Course course) {
         this.courses.add(course);
     }
