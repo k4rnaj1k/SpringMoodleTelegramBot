@@ -60,7 +60,7 @@ public class UserService {
     }
 
     @Scheduled(fixedDelay = 36_00_000L)
-    public void checkAttendaceEvents() {
+    public void checkAttendanceEvents() {
         log.info("Checking attendance events.");
         int notificationCount = 0;
         List<Event> events = eventRepository.findAllByModuleNameAndAfterAndBefore(Event.ModuleName.attendance, Instant.now(), Instant.now().plus(1, ChronoUnit.DAYS));
@@ -69,7 +69,7 @@ public class UserService {
             Set<User> users = event.getUsers();
             for (User user :
                     users) {
-                String message = "Here's the link to mark your attendance\n" + event.getUrl();
+                String message = "Here's the link to mark your attendance\n[%s](%s)".formatted(event.getName(), event.getUrl());
                 TimerTask timerTask = new NotifyAboutAttendanceTask(message, user.getChatId());
                 if (notifications.contains(timerTask))
                     continue;
