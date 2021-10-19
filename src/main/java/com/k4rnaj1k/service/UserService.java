@@ -104,7 +104,7 @@ public class UserService {
     }
 
     public User getUserById(Long chatId) {
-        return userRepository.findByChatId(chatId).orElseGet(()->userRepository.save(new User(chatId)));
+        return userRepository.findByChatId(chatId).orElseGet(() -> userRepository.save(new User(chatId)));
     }
 
     public void removeGroupChatById(Long groupChatId) {
@@ -112,7 +112,14 @@ public class UserService {
     }
 
     public UserChat getUserChatById(Long groupChatId, Long userChatId) {
-        return userChatRepository.findByChatId(groupChatId).orElseGet(() -> userChatRepository.save(new UserChat(getUserById(userChatId), groupChatId, State.UNCONNECTED)));
+        User user = getUserById(userChatId);
+
+        return userChatRepository.findByChatId(groupChatId).orElseGet(() -> {
+            if (user.getState() == State.LOGGED_IN)
+                return userChatRepository.save(new UserChat(user, groupChatId));
+            else
+                return userChatRepository.save(new UserChat(user, groupChatId, State.UNCONNECTED));
+        });
     }
 
     private class NotifyAboutAttendanceTask extends TimerTask {
@@ -128,8 +135,8 @@ public class UserService {
         @Override
         public void run() {
             List<Long> userChatIds = userDTO.userChatIds();
-            for (Long userChatId:
-                 userChatIds) {
+            for (Long userChatId :
+                    userChatIds) {
                 sendMessageConsumer.accept(TelegramUtil.createSendMessageWithUrl(userChatId, message));
             }
             sendMessageConsumer.accept(TelegramUtil.createSendMessageWithUrl(userDTO.chatId(), message));
@@ -157,7 +164,7 @@ public class UserService {
         }
     }
 
-//    @Scheduled(cron = "0 */10 8-20 * * *")
+    //    @Scheduled(cron = "0 */10 8-20 * * *")
     @Scheduled(cron = "0 */5 8-20 * * *")
     public void checkUsersTasks() {
         log.info("checking User's tasks.");

@@ -33,13 +33,9 @@ public class UpdateReceiver {
                 Long chatId = update.getMessage().getChatId();
                 User user = userService.getUserById(chatId);
                 return getHandleByState(user.getState()).handle(user, update);
-//            } else if (update.hasCallbackQuery()) {
-//                CallbackQuery callbackQuery = update.getCallbackQuery();
-//                return getHandlerByQuery(callbackQuery.getData()).handle(update, message.getText());
             } else if (isFromChat(update)) {
                 Long chatId;
                 Long groupChatId;
-                UserChat chat;
                 chatId = update.getMyChatMember().getFrom().getId();
                 if (update.getMyChatMember().getNewChatMember().getStatus().equals("left")) {
                     groupChatId = update.getMyChatMember().getChat().getId();
