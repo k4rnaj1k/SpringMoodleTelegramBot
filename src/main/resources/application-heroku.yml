@@ -20,3 +20,5 @@ server:
 logging:
   pattern:
     console: '%d{HH:mm}| %highlight(%-5level) ---| %logger{36} - %m{20}%n'
+admin:
+  chatid: ${ADMIN_CHATID}

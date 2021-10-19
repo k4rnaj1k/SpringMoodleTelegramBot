@@ -9,6 +9,7 @@ import com.k4rnaj1k.service.EventService;
 import com.k4rnaj1k.service.UserService;
 import com.k4rnaj1k.util.TelegramUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
@@ -30,6 +31,8 @@ public class RetrieveEvents implements Handler {
 
     private final EventService eventService;
     private final UserService userService;
+    @Value("${admin.chatid}")
+    private Long adminChatId;
 
     public RetrieveEvents(EventService eventService, @Lazy UserService userService) {
         this.eventService = eventService;
@@ -50,9 +53,12 @@ public class RetrieveEvents implements Handler {
             log.info("User issued courses command.");
             SendMessage coursesList = TelegramUtil.createSendMessage(user.getChatId(), getCourseList(user));
             return List.of(coursesList);
-        } else if (Objects.equals(message, "/update") && user.getChatId() == 561955044) {
+        } else if (Objects.equals(message, "/update") && Objects.equals(user.getChatId(), adminChatId)) {
             userService.parseAllUsersTasks();
             return List.of(TelegramUtil.createSendMessage(user.getChatId(), "Successfully parsed all the users events."));
+        }else if(Objects.equals(message, "/update-all") && Objects.equals(user.getChatId(), adminChatId)){
+            userService.loadAllUsersFields();
+            return List.of(TelegramUtil.createSendMessage(user.getChatId(), "Successfully parsed all user data."));
         }
         return result;
     }

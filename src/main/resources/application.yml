@@ -19,3 +19,5 @@ moodle:
 server:
   error:
     include-message: always
+admin:
+  chatid: ${ADMIN_CHATID}
