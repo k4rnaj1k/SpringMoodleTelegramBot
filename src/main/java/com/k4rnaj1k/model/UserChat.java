@@ -29,6 +29,12 @@ public class UserChat {
         this.state = State.CONNECTED;
     }
 
+    public UserChat(User user, Long chatId, State state) {
+        this.user = user;
+        this.chatId = chatId;
+        this.state = state;
+    }
+
     public Long getId() {
         return id;
     }

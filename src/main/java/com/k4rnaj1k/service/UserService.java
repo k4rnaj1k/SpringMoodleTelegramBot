@@ -6,10 +6,7 @@ import com.k4rnaj1k.dto.UserTokenDTO;
 import com.k4rnaj1k.dto.upcoming.CourseDTO;
 import com.k4rnaj1k.dto.upcoming.GroupDTO;
 import com.k4rnaj1k.model.*;
-import com.k4rnaj1k.repository.CourseRepository;
-import com.k4rnaj1k.repository.EventRepository;
-import com.k4rnaj1k.repository.GroupRepository;
-import com.k4rnaj1k.repository.UserRepository;
+import com.k4rnaj1k.repository.*;
 import com.k4rnaj1k.util.TelegramUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -42,6 +39,7 @@ public class UserService {
 
     private final WebService webService;
 
+    private final UserChatRepository userChatRepository;
     private final GroupRepository groupRepository;
     private final UserRepository userRepository;
     private final EventRepository eventRepository;
@@ -50,11 +48,12 @@ public class UserService {
     private static final Set<TimerTask> notifications = new LinkedHashSet<>();
 
 
-    public UserService(UserRepository userRepository, Function<User, List<Event>> eventsFunction, Consumer<SendMessage> sendMessageConsumer, WebService webService, GroupRepository groupRepository, EventRepository eventRepository, CourseRepository courseRepository) {
+    public UserService(UserRepository userRepository, Function<User, List<Event>> eventsFunction, Consumer<SendMessage> sendMessageConsumer, WebService webService, UserChatRepository userChatRepository, GroupRepository groupRepository, EventRepository eventRepository, CourseRepository courseRepository) {
         this.userRepository = userRepository;
         this.eventsFunction = eventsFunction;
         this.sendMessageConsumer = sendMessageConsumer;
         this.webService = webService;
+        this.userChatRepository = userChatRepository;
         this.groupRepository = groupRepository;
         this.eventRepository = eventRepository;
         this.courseRepository = courseRepository;
@@ -102,6 +101,18 @@ public class UserService {
             }
         }
         log.info("Successfully scheduled " + notificationCount + " notifications.");
+    }
+
+    public User getUserById(Long chatId) {
+        return userRepository.findByChatId(chatId).orElseGet(()->userRepository.save(new User(chatId)));
+    }
+
+    public void removeGroupChatById(Long groupChatId) {
+        userChatRepository.deleteByChatId(groupChatId);
+    }
+
+    public UserChat getUserChatById(Long groupChatId, Long userChatId) {
+        return userChatRepository.findByChatId(groupChatId).orElseGet(() -> userChatRepository.save(new UserChat(getUserById(userChatId), groupChatId, State.UNCONNECTED)));
     }
 
     private class NotifyAboutAttendanceTask extends TimerTask {

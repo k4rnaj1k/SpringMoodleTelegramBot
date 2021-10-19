@@ -5,11 +5,10 @@ import com.k4rnaj1k.handler.UserHandler;
 import com.k4rnaj1k.model.State;
 import com.k4rnaj1k.model.User;
 import com.k4rnaj1k.model.UserChat;
-import com.k4rnaj1k.repository.UserChatRepository;
-import com.k4rnaj1k.repository.UserRepository;
+import com.k4rnaj1k.service.UserService;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
-import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.io.Serializable;
@@ -20,22 +19,19 @@ import java.util.List;
 public class UpdateReceiver {
     private final List<UserHandler> userHandlers;
     private final List<GroupHandler> groupHandlers;
-    private final UserRepository userRepository;
-    private final UserChatRepository userChatRepository;
+    private final UserService userService;
 
-    public UpdateReceiver(List<UserHandler> userHandlers, List<GroupHandler> groupHandlers, UserRepository userRepository, UserChatRepository userChatRepository) {
+    public UpdateReceiver(List<UserHandler> userHandlers, List<GroupHandler> groupHandlers, @Lazy UserService userService) {
         this.userHandlers = userHandlers;
         this.groupHandlers = groupHandlers;
-        this.userRepository = userRepository;
-        this.userChatRepository = userChatRepository;
+        this.userService = userService;
     }
 
     public List<PartialBotApiMethod<? extends Serializable>> handle(Update update) {
         try {
             if (isMessageWithText(update)) {
                 Long chatId = update.getMessage().getChatId();
-                User user = userRepository.findByChatId(chatId)
-                        .orElseGet(() -> userRepository.save(new User(chatId)));
+                User user = userService.getUserById(chatId);
                 return getHandleByState(user.getState()).handle(user, update);
 //            } else if (update.hasCallbackQuery()) {
 //                CallbackQuery callbackQuery = update.getCallbackQuery();
@@ -43,21 +39,19 @@ public class UpdateReceiver {
             } else if (isFromChat(update)) {
                 Long chatId;
                 Long groupChatId;
-                if (update.getMessage() != null) {
-                    chatId = update.getMessage().getFrom().getId();
-                    groupChatId = update.getMessage().getChatId();
-                } else {
+                UserChat chat;
+                chatId = update.getMyChatMember().getFrom().getId();
+                if (update.getMyChatMember().getNewChatMember().getStatus().equals("left")) {
                     groupChatId = update.getMyChatMember().getChat().getId();
-                    chatId = update.getMyChatMember().getFrom().getId();
-                }
-                User user;
-                if (userRepository.existsByChatId(chatId)) {
-                    user = userRepository.getByChatId(chatId);
+                    userService.removeGroupChatById(groupChatId);
+                    return Collections.emptyList();
+                } else if (update.getMyChatMember().getNewChatMember().getStatus().equals("member")) {
+                    groupChatId = update.getMyChatMember().getChat().getId();
                 } else {
-                    user = userRepository.save(new User(chatId));
+                    return Collections.emptyList();
                 }
-                UserChat chat = userChatRepository.findByChatId(groupChatId).orElseGet(() -> userChatRepository.save(new UserChat(user, groupChatId)));
-                return getGroupHandlerByState(chat.getState()).handle(chat, update);
+                UserChat userChat = userService.getUserChatById(groupChatId, chatId);
+                return getGroupHandlerByState(userChat.getState()).handle(userChat, update);
             } else
                 throw new UnsupportedOperationException();
         } catch (UnsupportedOperationException e) {
@@ -72,7 +66,8 @@ public class UpdateReceiver {
     }
 
     private boolean isFromChat(Update update) {
-        return update.getMyChatMember() != null || update.getMessage().getChat().getType().equals("group");
+//        return update.getMyChatMember() != null || update.getMessage().getChat().getType().equals("group");
+        return update.getMyChatMember() != null;
     }
 
     private GroupHandler getGroupHandlerByState(State state) {
