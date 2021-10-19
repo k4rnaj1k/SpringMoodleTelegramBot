@@ -72,7 +72,8 @@ public class Event {
 
     public enum ModuleName {
         attendance,
-        assign
+        assign,
+        quiz
     }
 
     @Transactional
