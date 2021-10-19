@@ -42,12 +42,31 @@ public class Event {
 
     private String url;
 
-    public Event(Long eventId, ModuleName moduleName, String name, Instant timeStart, String url) {
+    @Enumerated(EnumType.STRING)
+    @Column(name="event_type")
+    private EventType eventType;
+
+    public enum EventType{
+        due,
+        open,
+        close,
+        attendance
+    }
+
+    public enum ModuleName {
+        attendance,
+        assign,
+        quiz
+    }
+
+
+    public Event(Long eventId, ModuleName moduleName, String name, Instant timeStart, String url, EventType eventType) {
         this.eventId = eventId;
         this.moduleName = moduleName;
         this.name = name;
         this.timeStart = timeStart;
         this.url = url;
+        this.eventType = eventType;
     }
 
     public void setCourse(Course course) {
@@ -68,12 +87,6 @@ public class Event {
 
     public Group getGroup() {
         return group;
-    }
-
-    public enum ModuleName {
-        attendance,
-        assign,
-        quiz
     }
 
     @Transactional
@@ -171,5 +184,13 @@ public class Event {
     @Override
     public int hashCode() {
         return Objects.hash(id, eventId, name);
+    }
+
+    public EventType getEventType() {
+        return eventType;
+    }
+
+    public void setEventType(EventType eventType) {
+        this.eventType = eventType;
     }
 }

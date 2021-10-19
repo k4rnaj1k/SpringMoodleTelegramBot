@@ -62,9 +62,11 @@ public class EventService {
                                     upcomingEvent.moduleName(),
                                     upcomingEvent.name().replaceAll("\s\\((.)*\\)", ""),
                                     upcomingEvent.timeStart(),
-                                    upcomingEvent.url())
+                                    upcomingEvent.url(),
+                                    upcomingEvent.eventType())
                     )
             );
+            event.setTimeStart(upcomingEvent.timeStart());
 
             if (upcomingEvent.groupid() != null && groupRepository.existsById(upcomingEvent.groupid())) {
                 var eventsGroup = groupRepository.getById(upcomingEvent.groupid());
@@ -84,7 +86,6 @@ public class EventService {
             }
 
             Set<User> users = event.getUsers();
-            log.info("users size = {}", users.size());
             for (User eventUser :
                     users) {
                 if (!usersEventRepository.existsByEventAndUser(event, eventUser)) {
@@ -92,7 +93,6 @@ public class EventService {
                     event.addUsersEvent(usersEvent);
                     usersEventRepository.save(usersEvent);
                 }
-                log.info("{} - {}", user.getChatId(), event.getName());
             }
             events.add(event);
             eventRepository.save(event);

@@ -1,6 +1,7 @@
 package com.k4rnaj1k.dto.upcoming;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.k4rnaj1k.model.Event;
 
 import java.time.Instant;
 
@@ -15,5 +16,7 @@ public record UpcomingEventDTO(
         String url,
         @JsonProperty("modulename")
         ModuleName moduleName,
-        Long groupid) {
+        Long groupid,
+        @JsonProperty("eventtype")
+        Event.EventType eventType) {
 }

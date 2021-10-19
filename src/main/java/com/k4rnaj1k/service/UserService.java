@@ -1,5 +1,6 @@
 package com.k4rnaj1k.service;
 
+import ch.qos.logback.core.util.TimeUtil;
 import com.k4rnaj1k.dto.LoginRequest;
 import com.k4rnaj1k.dto.UserTokenDTO;
 import com.k4rnaj1k.dto.upcoming.CourseDTO;
@@ -27,6 +28,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -57,6 +59,28 @@ public class UserService {
         this.groupRepository = groupRepository;
         this.eventRepository = eventRepository;
         this.courseRepository = courseRepository;
+    }
+
+    @Scheduled(fixedDelay = 36_00_000)
+    public void checkQuizzes(){
+        log.info("Checking quizzes.");
+        int notificationCount = 0;
+        List<Event> events = eventRepository.findAllByModuleNameAndAfterAndBefore(Event.ModuleName.quiz, Instant.now(), Instant.now().plus(1, ChronoUnit.DAYS));
+        for (Event event :
+                events) {
+            Set<User> users = event.getUsers();
+            for (User user :
+                    users) {
+                String message = "Here's the link to mark your quiz.\n[%s](%s)".formatted(event.getName(), event.getUrl());
+                TimerTask timerTask = new NotifyAboutAttendanceTask(message, user.getChatId());
+                if (notifications.contains(timerTask))
+                    continue;
+                timer.schedule(timerTask, Date.from(event.getTimeStart()));
+                notifications.add(timerTask);
+                notificationCount++;
+            }
+        }
+        log.info("Successfully scheduled " + notificationCount + " notifications.");
     }
 
     @Scheduled(fixedDelay = 36_00_000L)
@@ -107,6 +131,14 @@ public class UserService {
         @Override
         public int hashCode() {
             return Objects.hash(message, chatId);
+        }
+    }
+
+    public void loadAllUsersFields(){
+        List<User> users = userRepository.findAll();
+        for (User user :
+                users) {
+            loadUsersFields(user.getChatId().toString());
         }
     }
 
