@@ -1,15 +1,12 @@
 package com.k4rnaj1k.service;
 
-import ch.qos.logback.core.util.TimeUtil;
 import com.k4rnaj1k.dto.LoginRequest;
+import com.k4rnaj1k.dto.UserDTO;
 import com.k4rnaj1k.dto.UserTokenDTO;
 import com.k4rnaj1k.dto.upcoming.CourseDTO;
 import com.k4rnaj1k.dto.upcoming.GroupDTO;
 import com.k4rnaj1k.model.*;
-import com.k4rnaj1k.repository.CourseRepository;
-import com.k4rnaj1k.repository.EventRepository;
-import com.k4rnaj1k.repository.GroupRepository;
-import com.k4rnaj1k.repository.UserRepository;
+import com.k4rnaj1k.repository.*;
 import com.k4rnaj1k.util.TelegramUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -28,7 +25,6 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -43,6 +39,7 @@ public class UserService {
 
     private final WebService webService;
 
+    private final UserChatRepository userChatRepository;
     private final GroupRepository groupRepository;
     private final UserRepository userRepository;
     private final EventRepository eventRepository;
@@ -51,18 +48,19 @@ public class UserService {
     private static final Set<TimerTask> notifications = new LinkedHashSet<>();
 
 
-    public UserService(UserRepository userRepository, Function<User, List<Event>> eventsFunction, Consumer<SendMessage> sendMessageConsumer, WebService webService, GroupRepository groupRepository, EventRepository eventRepository, CourseRepository courseRepository) {
+    public UserService(UserRepository userRepository, Function<User, List<Event>> eventsFunction, Consumer<SendMessage> sendMessageConsumer, WebService webService, UserChatRepository userChatRepository, GroupRepository groupRepository, EventRepository eventRepository, CourseRepository courseRepository) {
         this.userRepository = userRepository;
         this.eventsFunction = eventsFunction;
         this.sendMessageConsumer = sendMessageConsumer;
         this.webService = webService;
+        this.userChatRepository = userChatRepository;
         this.groupRepository = groupRepository;
         this.eventRepository = eventRepository;
         this.courseRepository = courseRepository;
     }
 
     @Scheduled(fixedDelay = 36_00_000)
-    public void checkQuizzes(){
+    public void checkQuizzes() {
         log.info("Checking quizzes.");
         int notificationCount = 0;
         List<Event> events = eventRepository.findAllByModuleNameAndAfterAndBefore(Event.ModuleName.quiz, Instant.now(), Instant.now().plus(1, ChronoUnit.DAYS));
@@ -72,7 +70,7 @@ public class UserService {
             for (User user :
                     users) {
                 String message = "Here's the link to mark your quiz.\n[%s](%s)".formatted(event.getName(), event.getUrl());
-                TimerTask timerTask = new NotifyAboutAttendanceTask(message, user.getChatId());
+                TimerTask timerTask = new NotifyAboutAttendanceTask(message, UserDTO.fromUser(user));
                 if (notifications.contains(timerTask))
                     continue;
                 timer.schedule(timerTask, Date.from(event.getTimeStart()));
@@ -94,7 +92,7 @@ public class UserService {
             for (User user :
                     users) {
                 String message = "Here's the link to mark your attendance\n[%s](%s)".formatted(event.getName(), event.getUrl());
-                TimerTask timerTask = new NotifyAboutAttendanceTask(message, user.getChatId());
+                TimerTask timerTask = new NotifyAboutAttendanceTask(message, UserDTO.fromUser(user));
                 if (notifications.contains(timerTask))
                     continue;
                 timer.schedule(timerTask, Date.from(event.getTimeStart()));
@@ -105,19 +103,36 @@ public class UserService {
         log.info("Successfully scheduled " + notificationCount + " notifications.");
     }
 
+    public User getUserById(Long chatId) {
+        return userRepository.findByChatId(chatId).orElseGet(()->userRepository.save(new User(chatId)));
+    }
+
+    public void removeGroupChatById(Long groupChatId) {
+        userChatRepository.deleteByChatId(groupChatId);
+    }
+
+    public UserChat getUserChatById(Long groupChatId, Long userChatId) {
+        return userChatRepository.findByChatId(groupChatId).orElseGet(() -> userChatRepository.save(new UserChat(getUserById(userChatId), groupChatId, State.UNCONNECTED)));
+    }
+
     private class NotifyAboutAttendanceTask extends TimerTask {
 
         private final String message;
-        private final Long chatId;
+        private final UserDTO userDTO;
 
-        public NotifyAboutAttendanceTask(String message, Long chatId) {
+        public NotifyAboutAttendanceTask(String message, UserDTO userDTO) {
             this.message = message;
-            this.chatId = chatId;
+            this.userDTO = userDTO;
         }
 
         @Override
         public void run() {
-            sendMessageConsumer.accept(TelegramUtil.createSendMessageWithUrl(chatId, message));
+            List<Long> userChatIds = userDTO.userChatIds();
+            for (Long userChatId:
+                 userChatIds) {
+                sendMessageConsumer.accept(TelegramUtil.createSendMessageWithUrl(userChatId, message));
+            }
+            sendMessageConsumer.accept(TelegramUtil.createSendMessageWithUrl(userDTO.chatId(), message));
         }
 
         @Override
@@ -125,16 +140,16 @@ public class UserService {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
             NotifyAboutAttendanceTask that = (NotifyAboutAttendanceTask) o;
-            return Objects.equals(message, that.message) && Objects.equals(chatId, that.chatId);
+            return Objects.equals(message, that.message) && Objects.equals(userDTO, that.userDTO);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(message, chatId);
+            return Objects.hash(message, userDTO);
         }
     }
 
-    public void loadAllUsersFields(){
+    public void loadAllUsersFields() {
         List<User> users = userRepository.findAll();
         for (User user :
                 users) {
@@ -142,15 +157,19 @@ public class UserService {
         }
     }
 
-    @Scheduled(cron = "0 */10 8-20 * * *")
+//    @Scheduled(cron = "0 */10 8-20 * * *")
+    @Scheduled(cron = "0 */5 8-20 * * *")
     public void checkUsersTasks() {
         log.info("checking User's tasks.");
         List<Event> events = eventRepository.findAllAfterAndBefore(Instant.now(), Instant.now().plus(Duration.ofDays(1)));
         Map<Long, String> usersMessages = new LinkedHashMap<>();
         events.forEach(event -> event.getUsersEvents().forEach(usersEvent -> {
             if (!usersEvent.isNotified()) {
-                Long chatId = usersEvent.getUser().getChatId();
+                User user = usersEvent.getUser();
+                List<UserChat> userChats = user.getUserChats();
+                Long chatId = user.getChatId();
                 String message = DateTimeFormatter.ofPattern("hh:mm").format(LocalDateTime.ofInstant(event.getTimeStart(), ZoneId.of("Europe/Kiev"))) + " " + event.getName() + " " + event.getCourse().getShortName();
+                addChats(userChats, usersMessages, message);
                 if (usersMessages.containsKey(chatId)) {
                     usersMessages.put(chatId, usersMessages.get(chatId) + "\n" + message);
                 } else {
@@ -160,6 +179,18 @@ public class UserService {
             }
         }));
         sendMessagesToAll(usersMessages);
+    }
+
+    private void addChats(List<UserChat> userChats, Map<Long, String> usersMessages, String message) {
+        for (UserChat userChat :
+                userChats) {
+            Long chatId = userChat.getChatId();
+            if (usersMessages.containsKey(chatId)) {
+                usersMessages.put(chatId, usersMessages.get(chatId) + "\n" + message);
+            } else {
+                usersMessages.put(chatId, "Less than 24 hours left till:\n" + message);
+            }
+        }
     }
 
     @Scheduled(cron = "0 0 8,12,16,20 * * *")

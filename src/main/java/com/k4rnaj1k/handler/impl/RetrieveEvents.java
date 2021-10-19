@@ -1,6 +1,6 @@
 package com.k4rnaj1k.handler.impl;
 
-import com.k4rnaj1k.handler.Handler;
+import com.k4rnaj1k.handler.UserHandler;
 import com.k4rnaj1k.model.Course;
 import com.k4rnaj1k.model.Event;
 import com.k4rnaj1k.model.State;
@@ -14,6 +14,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -27,7 +28,7 @@ import java.util.Objects;
 
 @Component
 @Slf4j
-public class RetrieveEvents implements Handler {
+public class RetrieveEvents implements UserHandler {
 
     private final EventService eventService;
     private final UserService userService;
@@ -40,8 +41,8 @@ public class RetrieveEvents implements Handler {
     }
 
     @Override
-    public List<PartialBotApiMethod<? extends Serializable>> handle(User user, String message) {
-        return retrieveEvents(user, message);
+    public List<PartialBotApiMethod<? extends Serializable>> handle(User user, Update update) {
+        return retrieveEvents(user, update.getMessage().getText());
     }
 
     private List<PartialBotApiMethod<? extends Serializable>> retrieveEvents(User user, String message) {
