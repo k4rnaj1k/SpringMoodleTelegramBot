@@ -113,7 +113,6 @@ public class UserService {
 
     public UserChat getUserChatById(Long groupChatId, Long userChatId) {
         User user = getUserById(userChatId);
-
         return userChatRepository.findByChatId(groupChatId).orElseGet(() -> {
             if (user.getState() == State.LOGGED_IN)
                 return userChatRepository.save(new UserChat(user, groupChatId));
