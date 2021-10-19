@@ -6,7 +6,7 @@ spring:
       ddl-auto: update
     open-in-view: false
   flyway:
-    enabled: false
+    enabled: true
 bot:
   token: ${BOT_TOKEN}
   username: ${BOT_USR}
