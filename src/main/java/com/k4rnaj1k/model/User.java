@@ -33,6 +33,9 @@ public class User {
     @ManyToMany(mappedBy = "users")
     private List<Course> courses;
 
+    @OneToMany(mappedBy = "user")
+    private List<UserChat> userChats;
+
     private boolean receiveNotifications;
 
     public User(Long chatId) {
@@ -127,5 +130,13 @@ public class User {
 
     public void addCourse(Course course) {
         this.courses.add(course);
+    }
+
+    public List<UserChat> getUserChats() {
+        return userChats;
+    }
+
+    public void setUserChats(List<UserChat> userChats) {
+        this.userChats = userChats;
     }
 }

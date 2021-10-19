@@ -1,6 +1,6 @@
 package com.k4rnaj1k.handler.impl;
 
-import com.k4rnaj1k.handler.Handler;
+import com.k4rnaj1k.handler.UserHandler;
 import com.k4rnaj1k.model.State;
 import com.k4rnaj1k.model.User;
 import com.k4rnaj1k.util.TelegramUtil;
@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.io.Serializable;
 import java.util.Collections;
@@ -16,13 +17,13 @@ import java.util.List;
 
 @Component
 @Transactional
-public class RegisterUser implements Handler {
+public class RegisterUser implements UserHandler {
     @Value("${web.currenturl}")
     private String currentUrl;
 
     @Override
-    public List<PartialBotApiMethod<? extends Serializable>> handle(User user, String message) {
-        return register(user, message);
+    public List<PartialBotApiMethod<? extends Serializable>> handle(User user, Update update) {
+        return register(user, update.getMessage().getText());
     }
 
     private List<PartialBotApiMethod<? extends Serializable>> register(User user, String message) {

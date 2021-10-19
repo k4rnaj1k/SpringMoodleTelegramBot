@@ -1,0 +1,1 @@
+alter table user_chats add column state varchar(255);

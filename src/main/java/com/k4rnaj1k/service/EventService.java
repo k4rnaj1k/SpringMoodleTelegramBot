@@ -6,6 +6,7 @@ import com.k4rnaj1k.model.Event;
 import com.k4rnaj1k.model.User;
 import com.k4rnaj1k.model.UsersEvent;
 import com.k4rnaj1k.repository.*;
+import com.k4rnaj1k.util.TelegramUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
