@@ -273,6 +273,8 @@ public class UserService {
     public void loadUsersFields(String chatId) {
         User user = userRepository.findByChatId(Long.parseLong(chatId)).orElseThrow();
 
+        if(user.getState().equals(State.LOGGED_IN))
+            return;
         log.info("loadUsersFields - Loading user groups and courses.");
 
         loadUserGroups(user);
