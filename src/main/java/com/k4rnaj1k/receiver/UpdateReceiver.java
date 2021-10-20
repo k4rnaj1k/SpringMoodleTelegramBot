@@ -82,7 +82,6 @@ public class UpdateReceiver {
     }
 
     private boolean isMessageWithText(Update update) {
-        System.out.println(update.getMessage().getChat().getType());
-        return (!update.hasCallbackQuery() && update.hasMessage() && update.getMessage().hasText() && !update.getMessage().getChat().getType().equals("group"));
+        return (!update.hasCallbackQuery() && update.hasMessage() && update.getMessage().hasText() && !(update.getMessage().getChat().getType().equals("group")|| update.getMessage().getChat().getType().equals("supergroup")));
     }
 }
