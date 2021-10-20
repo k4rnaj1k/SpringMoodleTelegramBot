@@ -67,7 +67,7 @@ public class UpdateReceiver {
     }
 
     private boolean isFromChatUser(Update update) {
-        return update.getMessage().getChat().getType().equals("group")||update.getMessage().getChat().getType().equals("supergroup");
+        return (update.getMessage().getChat().getType().equals("group")||update.getMessage().getChat().getType().equals("supergroup")) && (update.hasMessage());
     }
 
     private boolean isChatStatusUpdate(Update update) {
