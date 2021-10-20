@@ -13,7 +13,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.scheduling.annotation.Schedules;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -160,7 +159,8 @@ public class UserService {
         List<User> users = userRepository.findAll();
         for (User user :
                 users) {
-            loadUsersFields(user.getChatId().toString());
+            if (user.getState().equals(State.LOGGED_IN))
+                loadUsersFields(user.getChatId().toString());
         }
     }
 
@@ -221,6 +221,8 @@ public class UserService {
     @Transactional(readOnly = true)
     public boolean shouldParse(User user) {
         user = userRepository.getById(user.getId());
+        if (!user.getState().equals(State.LOGGED_IN))
+            return false;
         List<Group> groups = user.getGroups();
         for (Group group :
                 groups) {
@@ -274,7 +276,7 @@ public class UserService {
     public void loadUsersFields(String chatId) {
         User user = userRepository.findByChatId(Long.parseLong(chatId)).orElseThrow();
 
-        if(user.getState().equals(State.LOGGED_IN))
+        if (user.getState().equals(State.LOGGED_IN))
             return;
         log.info("loadUsersFields - Loading user groups and courses.");
 

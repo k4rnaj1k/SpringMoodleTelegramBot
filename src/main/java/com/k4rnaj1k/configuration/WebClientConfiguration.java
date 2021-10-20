@@ -16,7 +16,9 @@ public class WebClientConfiguration {
 
     @Bean
     public WebClient webClient() {
-        HttpClient httpClient = new HttpClient(new SslContextFactory.Client(true));
+        SslContextFactory sslContextFactory = new SslContextFactory.Client(true);
+        sslContextFactory.setEndpointIdentificationAlgorithm("HTTPS");
+        HttpClient httpClient = new HttpClient(sslContextFactory);
         ClientHttpConnector connector = new JettyClientHttpConnector(httpClient);
 
         return WebClient.builder().baseUrl(moodleUrl).clientConnector(connector).build();
