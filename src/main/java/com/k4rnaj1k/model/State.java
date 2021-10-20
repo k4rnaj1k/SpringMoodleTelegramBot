@@ -5,5 +5,6 @@ public enum State {
     LOGGED_IN,
     INVALID_DATA,
     CONNECTED,
+    CHAT_LOGGED_IN,
     UNCONNECTED
 }

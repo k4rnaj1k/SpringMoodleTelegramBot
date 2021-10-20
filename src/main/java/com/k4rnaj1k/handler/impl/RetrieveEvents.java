@@ -17,14 +17,12 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeFormatterBuilder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+
+import static com.k4rnaj1k.util.TelegramUtil.formatEvents;
 
 @Component
 @Slf4j
@@ -57,7 +55,7 @@ public class RetrieveEvents implements UserHandler {
         } else if (Objects.equals(message, "/update") && Objects.equals(user.getChatId(), adminChatId)) {
             userService.parseAllUsersTasks();
             return List.of(TelegramUtil.createSendMessage(user.getChatId(), "Successfully parsed all the users events."));
-        }else if(Objects.equals(message, "/update-all") && Objects.equals(user.getChatId(), adminChatId)){
+        } else if (Objects.equals(message, "/update-all") && Objects.equals(user.getChatId(), adminChatId)) {
             userService.loadAllUsersFields();
             return List.of(TelegramUtil.createSendMessage(user.getChatId(), "Successfully parsed all user data."));
         }
@@ -92,23 +90,6 @@ public class RetrieveEvents implements UserHandler {
         for (Course course :
                 userCourses) {
             res = res.concat(course.getFullName() + " - " + course.getShortName() + "\n");
-        }
-        return res;
-    }
-
-    private String formatEvents(List<Event> events, boolean afterTomorrow) {
-        String res = "";
-        DateTimeFormatter tomorrowFormat = new DateTimeFormatterBuilder().appendPattern("HH:mm").toFormatter();
-        DateTimeFormatter weekFormat = new DateTimeFormatterBuilder().appendPattern("dd.MM").toFormatter();
-        for (Event event :
-                events) {
-            res = res.concat((event.getCourse() != null ? event.getCourse().getShortName() : event.getGroup().getName()) + " " + event.getName() + " ");
-            if (!afterTomorrow)
-                res = res.concat(tomorrowFormat.format(LocalDateTime.ofInstant(event.getTimeStart(), ZoneId.of("Europe/Kiev"))));
-            else {
-                res = res.concat(weekFormat.format(LocalDateTime.ofInstant(event.getTimeStart(), ZoneId.of("Europe/Kiev"))));
-            }
-            res = res.concat("\n");
         }
         return res;
     }

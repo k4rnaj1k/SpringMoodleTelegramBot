@@ -23,6 +23,7 @@ public class GroupUserHandler implements GroupHandler {
             SendMessage message = TelegramUtil.createSendMessage(userChat.getChatId(), "This chat now receives @" + update.getMyChatMember().getFrom().getUserName() + " 's updates.");
             result.add(message);
         }
+        userChat.setState(State.CHAT_LOGGED_IN);
         return result;
     }
 

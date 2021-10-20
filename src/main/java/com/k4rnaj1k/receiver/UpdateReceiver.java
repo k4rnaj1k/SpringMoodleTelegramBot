@@ -34,19 +34,20 @@ public class UpdateReceiver {
                 User user = userService.getUserById(chatId);
                 return getHandleByState(user.getState()).handle(user, update);
             } else if (isFromChat(update)) {
-                Long chatId;
-                Long groupChatId;
-                chatId = update.getMyChatMember().getFrom().getId();
+                Long chatId = update.getMyChatMember().getFrom().getId();
+                Long groupChatId = update.getMyChatMember().getChat().getId();
                 if (update.getMyChatMember().getNewChatMember().getStatus().equals("left")) {
-                    groupChatId = update.getMyChatMember().getChat().getId();
                     userService.removeGroupChatById(groupChatId);
                     return Collections.emptyList();
                 } else if (update.getMyChatMember().getNewChatMember().getStatus().equals("member")) {
-                    groupChatId = update.getMyChatMember().getChat().getId();
-                } else {
-                    return Collections.emptyList();
+                    UserChat userChat = userService.getUserChatById(update.getMessage().getFrom().getId(), groupChatId);
+                    return getGroupHandlerByState(userChat.getState()).handle(userChat, update);
+                }else{
+                    throw new UnsupportedOperationException();
                 }
-                UserChat userChat = userService.getUserChatById(groupChatId, chatId);
+            } else if (isFromChatUser(update)) {
+                User user = userService.getUserById(update.getMessage().getFrom().getId());
+                UserChat userChat = userService.getUserChatById(update.getMessage().getChat().getId(), user.getChatId());
                 return getGroupHandlerByState(userChat.getState()).handle(userChat, update);
             } else
                 throw new UnsupportedOperationException();
@@ -59,6 +60,10 @@ public class UpdateReceiver {
         return userHandlers.stream().filter(userHandler -> userHandler.operatedBotState() != null)
                 .filter(userHandler -> userHandler.operatedBotState() == state)
                 .findFirst().orElseThrow(UnsupportedOperationException::new);
+    }
+
+    private boolean isFromChatUser(Update update) {
+        return update.getMessage().getChat().getType().equals("group");
     }
 
     private boolean isFromChat(Update update) {
