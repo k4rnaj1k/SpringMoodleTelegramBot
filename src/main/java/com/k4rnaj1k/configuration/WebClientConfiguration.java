@@ -1,8 +1,12 @@
 package com.k4rnaj1k.configuration;
 
+import org.eclipse.jetty.client.HttpClient;
+import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.client.reactive.ClientHttpConnector;
+import org.springframework.http.client.reactive.JettyClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 
 @Configuration
@@ -12,7 +16,10 @@ public class WebClientConfiguration {
 
     @Bean
     public WebClient webClient() {
-        return WebClient.builder().baseUrl(moodleUrl).build();
+        HttpClient httpClient = new HttpClient(new SslContextFactory.Client(true));
+        ClientHttpConnector connector = new JettyClientHttpConnector(httpClient);
+
+        return WebClient.builder().baseUrl(moodleUrl).clientConnector(connector).build();
     }
 
 }
