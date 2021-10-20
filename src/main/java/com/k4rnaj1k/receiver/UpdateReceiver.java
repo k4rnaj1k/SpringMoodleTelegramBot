@@ -8,6 +8,7 @@ import com.k4rnaj1k.model.UserChat;
 import com.k4rnaj1k.service.UserService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
@@ -27,21 +28,24 @@ public class UpdateReceiver {
         this.userService = userService;
     }
 
+    @Transactional
     public List<PartialBotApiMethod<? extends Serializable>> handle(Update update) {
         try {
             if (isMessageWithText(update)) {
                 Long chatId = update.getMessage().getChatId();
                 User user = userService.getUserById(chatId);
                 return getHandleByState(user.getState()).handle(user, update);
-            } else if (isFromChat(update)) {
+            } else if (isChatStatusUpdate(update)) {
                 Long chatId = update.getMyChatMember().getFrom().getId();
                 Long groupChatId = update.getMyChatMember().getChat().getId();
                 if (update.getMyChatMember().getNewChatMember().getStatus().equals("left")) {
                     userService.removeGroupChatById(groupChatId);
                     return Collections.emptyList();
                 } else if (update.getMyChatMember().getNewChatMember().getStatus().equals("member")) {
-                    UserChat userChat = userService.getUserChatById(update.getMessage().getFrom().getId(), groupChatId);
-                    return getGroupHandlerByState(userChat.getState()).handle(userChat, update);
+                    UserChat userChat = userService.getUserChatById(groupChatId, chatId);
+                    List<PartialBotApiMethod<? extends Serializable>> result = getGroupHandlerByState(userChat.getState()).handle(userChat, update);
+                    userChat.setState(State.CHAT_LOGGED_IN);
+                    return result;
                 }else{
                     throw new UnsupportedOperationException();
                 }
@@ -66,7 +70,7 @@ public class UpdateReceiver {
         return update.getMessage().getChat().getType().equals("group");
     }
 
-    private boolean isFromChat(Update update) {
+    private boolean isChatStatusUpdate(Update update) {
 //        return update.getMyChatMember() != null || update.getMessage().getChat().getType().equals("group");
         return update.getMyChatMember() != null;
     }
