@@ -67,7 +67,7 @@ public class UpdateReceiver {
     }
 
     private boolean isFromChatUser(Update update) {
-        return update.getMessage().getChat().getType().equals("group");
+        return update.getMessage().getChat().getType().equals("group")||update.getMessage().getChat().getType().equals("supergroup");
     }
 
     private boolean isChatStatusUpdate(Update update) {
@@ -82,6 +82,6 @@ public class UpdateReceiver {
     }
 
     private boolean isMessageWithText(Update update) {
-        return (!update.hasCallbackQuery() && update.hasMessage() && update.getMessage().hasText() && !(update.getMessage().getChat().getType().equals("group")|| update.getMessage().getChat().getType().equals("supergroup")));
+        return (!update.hasCallbackQuery() && update.hasMessage() && update.getMessage().hasText() && update.getMessage().getChat().getType().equals("private"));
     }
 }
