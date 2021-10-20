@@ -72,7 +72,7 @@ public class UpdateReceiver {
 
     private boolean isChatStatusUpdate(Update update) {
 //        return update.getMyChatMember() != null || update.getMessage().getChat().getType().equals("group");
-        return update.getMyChatMember() != null;
+        return update.getMyChatMember() != null && !update.hasMessage();
     }
 
     private GroupHandler getGroupHandlerByState(State state) {
