@@ -41,10 +41,10 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     }
 
     default List<Event> findAllByModuleNameAndAfterAndBefore(Event.ModuleName moduleName, Event.EventType eventType, Instant after, Instant before) {
-        return findAllByModuleNameAndEventTypeAndTimeStartBeforeAndTimeStartAfter(moduleName, eventType, after, before);
+        return findAllByModuleNameAndEventTypeAndTimeStartAfterAndTimeStartBefore(moduleName, eventType, after, before);
     }
 
-    List<Event> findAllByModuleNameAndEventTypeAndTimeStartBeforeAndTimeStartAfter(Event.ModuleName moduleName, Event.EventType eventType, Instant after, Instant before);
+    List<Event> findAllByModuleNameAndEventTypeAndTimeStartAfterAndTimeStartBefore(Event.ModuleName moduleName, Event.EventType eventType, Instant after, Instant before);
 
     List<Event> findAllByModuleNameAndTimeStartAfterAndTimeStartBefore(Event.ModuleName moduleName, Instant after, Instant before);
 }
