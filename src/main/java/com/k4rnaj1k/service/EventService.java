@@ -6,14 +6,14 @@ import com.k4rnaj1k.model.Event;
 import com.k4rnaj1k.model.User;
 import com.k4rnaj1k.model.UsersEvent;
 import com.k4rnaj1k.repository.*;
-import com.k4rnaj1k.util.TelegramUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
+import java.time.*;
 import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -107,7 +107,7 @@ public class EventService {
     }
 
     public List<Event> getThisWeek(User user) {
-        return eventRepository.findAllAfterAndBefore(Instant.now().plus(1, ChronoUnit.DAYS), Instant.now().plus(7, ChronoUnit.DAYS), user);
+        return eventRepository.findAllAfterAndBefore(Instant.now().plus(1, ChronoUnit.DAYS), LocalDate.now().atStartOfDay().with(TemporalAdjusters.next(DayOfWeek.SUNDAY)).toInstant(ZoneId.of("Europe/Kiev").getRules().getOffset(Instant.now())), user);
     }
 
     public List<Event> getAfterWeek(User user) {

@@ -63,14 +63,14 @@ public class UserService {
     public void checkQuizzes() {
         log.info("Checking quizzes.");
         int notificationCount = 0;
-        List<Event> events = eventRepository.findAllByModuleNameAndAfterAndBefore(Event.ModuleName.quiz, Instant.now(), Instant.now().plus(1, ChronoUnit.DAYS));
+        List<Event> events = eventRepository.findAllByModuleNameAndAfterAndBefore(Event.ModuleName.quiz, Event.EventType.open, Instant.now(), Instant.now().plus(1, ChronoUnit.DAYS));
         for (Event event :
                 events) {
             Set<User> users = event.getUsers();
             for (User user :
                     users) {
-                String message = "Here's the link to mark your quiz.\n[%s](%s)".formatted(event.getName(), event.getUrl());
-                TimerTask timerTask = new NotifyAboutAttendanceTask(message, UserDTO.fromUser(user));
+                String message = "Here's the link to complete your quiz\n[%s](%s)".formatted(event.getName().replaceAll("\\.", "\\\\.") + " " + event.getCourse().getShortName(), event.getUrl());
+                TimerTask timerTask = new NotifierTask(message, UserDTO.fromUser(user));
                 if (notifications.contains(timerTask))
                     continue;
                 timer.schedule(timerTask, Date.from(event.getTimeStart()));
@@ -92,7 +92,7 @@ public class UserService {
             for (User user :
                     users) {
                 String message = "Here's the link to mark your attendance\n[%s](%s)".formatted(event.getName(), event.getUrl());
-                TimerTask timerTask = new NotifyAboutAttendanceTask(message, UserDTO.fromUser(user));
+                TimerTask timerTask = new NotifierTask(message, UserDTO.fromUser(user));
                 if (notifications.contains(timerTask))
                     continue;
                 timer.schedule(timerTask, Date.from(event.getTimeStart()));
@@ -121,12 +121,12 @@ public class UserService {
         });
     }
 
-    private class NotifyAboutAttendanceTask extends TimerTask {
+    private class NotifierTask extends TimerTask {
 
         private final String message;
         private final UserDTO userDTO;
 
-        public NotifyAboutAttendanceTask(String message, UserDTO userDTO) {
+        public NotifierTask(String message, UserDTO userDTO) {
             this.message = message;
             this.userDTO = userDTO;
         }
@@ -145,7 +145,7 @@ public class UserService {
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
-            NotifyAboutAttendanceTask that = (NotifyAboutAttendanceTask) o;
+            NotifierTask that = (NotifierTask) o;
             return Objects.equals(message, that.message) && Objects.equals(userDTO, that.userDTO);
         }
 

@@ -2,6 +2,7 @@ package com.k4rnaj1k.repository;
 
 import com.k4rnaj1k.model.Event;
 import com.k4rnaj1k.model.User;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.Instant;
@@ -22,10 +23,10 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     }
 
     default List<Event> findAllAfterAndBefore(Instant after, Instant before, User user) {
-        return findAllByTimeStartAfterAndTimeStartBeforeAndUsersEvents_User(after, before, user);
+        return findAllByTimeStartAfterAndTimeStartBeforeAndUsersEvents_User(after, before, user, Sort.by(Sort.Direction.ASC, "timeStart"));
     }
 
-    List<Event> findAllByTimeStartAfterAndTimeStartBeforeAndUsersEvents_User(Instant after, Instant before, User user);
+    List<Event> findAllByTimeStartAfterAndTimeStartBeforeAndUsersEvents_User(Instant after, Instant before, User user, Sort sort);
 
     List<Event> findAllByTimeStartAfterAndTimeStartBefore(Instant after, Instant before);
 
@@ -38,6 +39,12 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     default List<Event> findAllByModuleNameAndAfterAndBefore(Event.ModuleName moduleName, Instant after, Instant before) {
         return findAllByModuleNameAndTimeStartAfterAndTimeStartBefore(moduleName, after, before);
     }
+
+    default List<Event> findAllByModuleNameAndAfterAndBefore(Event.ModuleName moduleName, Event.EventType eventType, Instant after, Instant before) {
+        return findAllByModuleNameAndEventTypeAndTimeStartBeforeAndTimeStartAfter(moduleName, eventType, after, before);
+    }
+
+    List<Event> findAllByModuleNameAndEventTypeAndTimeStartBeforeAndTimeStartAfter(Event.ModuleName moduleName, Event.EventType eventType, Instant after, Instant before);
 
     List<Event> findAllByModuleNameAndTimeStartAfterAndTimeStartBefore(Event.ModuleName moduleName, Instant after, Instant before);
 }
