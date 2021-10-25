@@ -107,7 +107,7 @@ public class EventService {
     }
 
     public List<Event> getThisWeek(User user) {
-        return eventRepository.findAllAfterAndBefore(Instant.now().plus(1, ChronoUnit.DAYS), LocalDate.now().atStartOfDay().with(TemporalAdjusters.next(DayOfWeek.SUNDAY)).toInstant(ZoneId.of("Europe/Kiev").getRules().getOffset(Instant.now())), user);
+        return eventRepository.findAllAfterAndBefore(Instant.now().plus(1, ChronoUnit.DAYS), LocalDate.now().atStartOfDay().with(TemporalAdjusters.next(DayOfWeek.MONDAY)).toInstant(ZoneId.of("Europe/Kiev").getRules().getOffset(Instant.now())), user);
     }
 
     public List<Event> getAfterWeek(User user) {

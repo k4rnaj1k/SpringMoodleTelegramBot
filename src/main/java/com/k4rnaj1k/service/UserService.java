@@ -165,7 +165,7 @@ public class UserService {
     }
 
     //    @Scheduled(cron = "0 */10 8-20 * * *")
-    @Scheduled(cron = "0 */5 8-20 * * *")
+    @Scheduled(cron = "0 30 8-20 * * *")
     public void checkUsersTasks() {
         log.info("checking User's tasks.");
         List<Event> events = eventRepository.findAllAfterAndBefore(Instant.now(), Instant.now().plus(Duration.ofDays(1)));
