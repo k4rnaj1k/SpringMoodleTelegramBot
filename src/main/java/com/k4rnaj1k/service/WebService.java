@@ -11,6 +11,7 @@ import com.k4rnaj1k.exception.BotExceptionUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -18,6 +19,7 @@ import java.util.List;
 
 @Service
 @Slf4j
+@Transactional
 public class WebService {
     private final WebClient webClient;
 
