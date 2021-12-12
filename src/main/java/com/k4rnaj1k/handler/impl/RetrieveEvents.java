@@ -81,6 +81,7 @@ public class RetrieveEvents implements UserHandler {
             SendMessage afterWeekMessage = TelegramUtil.createSendMessage(user.getChatId(), "After this week" + "\n" + formatEvents(afterWeekEvents, true));
             result.add(afterWeekMessage);
         }
+        result.add(TelegramUtil.createSendMessage(user.getChatId(), "Done"));
         return result;
     }
 
