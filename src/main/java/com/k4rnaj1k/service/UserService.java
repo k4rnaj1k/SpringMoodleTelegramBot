@@ -5,6 +5,7 @@ import com.k4rnaj1k.dto.UserDTO;
 import com.k4rnaj1k.dto.UserTokenDTO;
 import com.k4rnaj1k.dto.upcoming.CourseDTO;
 import com.k4rnaj1k.dto.upcoming.GroupDTO;
+import com.k4rnaj1k.exception.InvalidTokenException;
 import com.k4rnaj1k.model.*;
 import com.k4rnaj1k.repository.*;
 import com.k4rnaj1k.util.TelegramUtil;
@@ -307,12 +308,16 @@ public class UserService {
 
     @Transactional
     public void loadUserGroups(User user) {
+        try{
         List<GroupDTO> userGroups = webService.getGroups(user.getToken());
         for (GroupDTO groupDTO : userGroups) {
             Group group = groupRepository.findById(groupDTO.id())
                     .orElseGet(() -> groupRepository.save(new Group(groupDTO.id(), groupDTO.name())));
             group.addUser(user);
             groupRepository.save(group);
+        }
+        }catch (InvalidTokenException e){
+            user.setState(State.START);
         }
     }
 

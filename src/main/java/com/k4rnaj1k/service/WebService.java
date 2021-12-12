@@ -8,6 +8,7 @@ import com.k4rnaj1k.dto.upcoming.GroupDTO;
 import com.k4rnaj1k.dto.upcoming.UpcomingEventDTO;
 import com.k4rnaj1k.dto.upcoming.UpcomingView;
 import com.k4rnaj1k.exception.BotExceptionUtils;
+import com.k4rnaj1k.exception.InvalidTokenException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -43,7 +44,7 @@ public class WebService {
         }
     }
 
-    public List<GroupDTO> getGroups(String token) {
+    public List<GroupDTO> getGroups(String token) throws InvalidTokenException {
         log.info("getGroups - loading user's groups.");
         UserGroupsDTO list = webClient.get().uri(uriBuilder -> uriBuilder.path("/webservice/rest/server.php")
                 .queryParam("wstoken", token)
@@ -51,9 +52,8 @@ public class WebService {
                 .queryParam("moodlewsrestformat", "json")
                 .build()
         ).retrieve().bodyToMono(UserGroupsDTO.class).block();
-        if(list == null || list.groups() == null){
-            log.error("{} groups = null", token);
-            log.error("/webservice/rest/server.php?wstoken={}&wsfunction={}&moodlewrestformat=json", token, "core_group_get_course_user_groups");
+        if(list !=null && list.groups() == null){
+            throw new InvalidTokenException(token);
         }
         return list != null ? list.groups() : null;
     }
