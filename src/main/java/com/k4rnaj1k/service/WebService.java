@@ -51,8 +51,9 @@ public class WebService {
                 .queryParam("moodlewsrestformat", "json")
                 .build()
         ).retrieve().bodyToMono(UserGroupsDTO.class).block();
-        if(list == null){
+        if(list == null || list.groups() == null){
             log.error("{} groups = null", token);
+            log.error("/webservice/rest/server.php?wstoken={}&wsfunction={}&moodlewrestformat=json", token, "core_group_get_course_user_groups");
         }
         return list != null ? list.groups() : null;
     }
