@@ -276,7 +276,7 @@ public class UserService {
     @Transactional
     public void loadUsersFields(String chatId) {
         User user = userRepository.findByChatId(Long.parseLong(chatId)).orElseThrow();
-
+        try{
         if (!user.getState().equals(State.LOGGED_IN))
             return;
         log.info("loadUsersFields - Loading user groups and courses.");
@@ -292,6 +292,9 @@ public class UserService {
                 You're automatically subscribed to the bot's notifications regarding upcoming events.
                 Send /upcoming to get all the currently saved events."""));
         log.info("loadUsersFields - Successfully loaded user's fields");
+        }catch (InvalidTokenException e){
+            user.setState(State.START);
+        }
     }
 
     @Transactional
@@ -307,8 +310,7 @@ public class UserService {
     }
 
     @Transactional
-    public void loadUserGroups(User user) {
-        try{
+    public void loadUserGroups(User user) throws InvalidTokenException {
         List<GroupDTO> userGroups = webService.getGroups(user.getToken());
         for (GroupDTO groupDTO : userGroups) {
             Group group = groupRepository.findById(groupDTO.id())
@@ -316,9 +318,7 @@ public class UserService {
             group.addUser(user);
             groupRepository.save(group);
         }
-        }catch (InvalidTokenException e){
-            user.setState(State.START);
-        }
+
     }
 
     public User getUserById(String chatId) {
