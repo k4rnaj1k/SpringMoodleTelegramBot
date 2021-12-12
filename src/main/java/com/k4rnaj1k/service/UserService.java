@@ -175,7 +175,7 @@ public class UserService {
                 User user = usersEvent.getUser();
                 List<UserChat> userChats = user.getUserChats();
                 Long chatId = user.getChatId();
-                String message = DateTimeFormatter.ofPattern("hh:mm").format(LocalDateTime.ofInstant(event.getTimeStart(), ZoneId.of("Europe/Kiev"))) + " " + event.getName() + " " + event.getCourse().getShortName();
+                String message = DateTimeFormatter.ofPattern("HH:mm").format(LocalDateTime.ofInstant(event.getTimeStart(), ZoneId.of("Europe/Kiev"))) + " " + event.getName() + " " + event.getCourse().getShortName();
                 addChats(userChats, usersMessages, message);
                 if (usersMessages.containsKey(chatId)) {
                     usersMessages.put(chatId, usersMessages.get(chatId) + "\n" + message);
@@ -276,7 +276,7 @@ public class UserService {
     public void loadUsersFields(String chatId) {
         User user = userRepository.findByChatId(Long.parseLong(chatId)).orElseThrow();
 
-        if (user.getState().equals(State.LOGGED_IN))
+        if (!user.getState().equals(State.LOGGED_IN))
             return;
         log.info("loadUsersFields - Loading user groups and courses.");
 
