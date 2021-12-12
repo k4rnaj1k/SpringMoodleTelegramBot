@@ -49,6 +49,9 @@ public class WebService {
                 .queryParam("moodlewsrestformat", "json")
                 .build()
         ).retrieve().bodyToMono(UserGroupsDTO.class).block();
+        if(list == null){
+            log.error("{} groups = null", token);
+        }
         return list != null ? list.groups() : null;
     }
 
