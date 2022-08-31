@@ -1,3 +1,4 @@
 .idea
 target
 /.jpb/
+telegram-bot.env
